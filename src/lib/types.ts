@@ -78,5 +78,7 @@ export interface ChatMessage {
   content: string;
   images?: string[];
   estimation?: EstimationData;
+  providers?: Provider[];
+  topPickId?: string;
   timestamp: Date;
 }
