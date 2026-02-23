@@ -16,7 +16,7 @@ export default function ProviderCard({ provider, isTopPick, estimation }: Provid
     const primaryCategory = provider.categories[0] || 'servicio';
 
     // Redirect to fresh chat with category
-    window.location.href = `/?category=${encodeURIComponent(primaryCategory)}`;
+    window.location.href = `/chat?category=${encodeURIComponent(primaryCategory)}`;
   };
 
   return (
