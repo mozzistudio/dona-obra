@@ -1,20 +1,22 @@
-'use client';
-
-import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
-import Chat from '@/components/Chat';
+import ChatApp from '@/components/ChatApp';
 
-function ChatWithParams() {
-  const searchParams = useSearchParams();
-  const category = searchParams.get('category');
-
-  return <Chat initialCategory={category} />;
-}
+export const metadata = {
+  title: 'Consultar',
+  description:
+    'Chatea con Doña Obra para encontrar el mejor profesional para tu hogar.',
+};
 
 export default function ChatPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center h-screen bg-cream"><span className="text-muted">Cargando...</span></div>}>
-      <ChatWithParams />
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-cream flex items-center justify-center">
+          <div className="text-coral text-xl">Cargando...</div>
+        </div>
+      }
+    >
+      <ChatApp />
     </Suspense>
   );
 }

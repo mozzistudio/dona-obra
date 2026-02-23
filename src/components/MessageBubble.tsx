@@ -1,24 +1,22 @@
-import { ChatMessage } from '@/lib/types';
+import { ChatMessage, Provider } from '@/lib/types';
 import ImagePreview from './ImagePreview';
-import EstimationCard from './EstimationCard';
 import ProviderCarousel from './ProviderCarousel';
 
 interface MessageBubbleProps {
   message: ChatMessage;
+  onShareProject?: (provider: Provider) => void;
 }
 
-export default function MessageBubble({ message }: MessageBubbleProps) {
+export default function MessageBubble({ message, onShareProject }: MessageBubbleProps) {
   const isUser = message.role === 'user';
 
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
       <div className={`max-w-[85%] md:max-w-[70%] ${isUser ? 'order-2' : 'order-1'}`}>
         {!isUser && (
-          <div className="flex items-center gap-2 mb-1.5">
-            <div className="w-8 h-8 bg-gradient-to-br from-coral to-coral-dark rounded-lg flex items-center justify-center text-base shadow-sm">
-              👷‍♀️
-            </div>
-            <span className="text-sm font-semibold text-charcoal">Doña Obra</span>
+          <div className="flex items-center gap-2 mb-1">
+            <img src="/dona-obra-logo.png" alt="Doña Obra" className="w-7 h-7 rounded-full object-cover" />
+            <span className="text-sm font-semibold text-gray-600">Doña Obra</span>
           </div>
         )}
 
@@ -42,18 +40,13 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
           )}
         </div>
 
-        {message.estimation && (
-          <div className="mt-3">
-            <EstimationCard estimation={message.estimation} />
-          </div>
-        )}
-
         {message.providers && message.providers.length > 0 && (
           <div className="mt-3">
             <ProviderCarousel
               providers={message.providers}
               topPickId={message.topPickId}
               estimation={message.estimation}
+              onShareProject={onShareProject}
             />
           </div>
         )}

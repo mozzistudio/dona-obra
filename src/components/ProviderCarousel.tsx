@@ -7,18 +7,20 @@ interface ProviderCarouselProps {
   providers: Provider[];
   topPickId?: string;
   estimation?: EstimationData;
+  onShareProject?: (provider: Provider) => void;
 }
 
-export default function ProviderCarousel({ providers, topPickId, estimation }: ProviderCarouselProps) {
+export default function ProviderCarousel({ providers, topPickId, estimation, onShareProject }: ProviderCarouselProps) {
   return (
     <>
-      <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
+      <div className="flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide">
         {providers.map((provider) => (
           <div key={provider.id} className="snap-start">
             <ProviderCard
               provider={provider}
               isTopPick={provider.id === topPickId}
               estimation={estimation}
+              onShareProject={onShareProject}
             />
           </div>
         ))}

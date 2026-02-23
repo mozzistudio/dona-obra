@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { Conversation, Message, ContactRequest } from './types';
+import { Conversation, Message, ContactRequest, ConversationMeta } from './types';
 
 export async function createConversation(): Promise<string | null> {
   const { data, error } = await supabase
@@ -113,4 +113,77 @@ export async function createContactRequest(
   }
 
   return data;
+}
+
+export async function getAllConversations(): Promise<Conversation[]> {
+  const { data, error } = await supabase
+    .from('conversations')
+    .select('*')
+    .order('last_message_at', { ascending: false })
+    .limit(30);
+
+  if (error) {
+    console.error('Error fetching conversations:', error);
+    return [];
+  }
+
+  return data || [];
+}
+
+export async function getLastMessageForConversations(
+  conversationIds: string[]
+): Promise<Record<string, Message>> {
+  if (conversationIds.length === 0) return {};
+
+  const { data, error } = await supabase
+    .from('messages')
+    .select('*')
+    .in('conversation_id', conversationIds)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching last messages:', error);
+    return {};
+  }
+
+  const lastMessages: Record<string, Message> = {};
+  for (const msg of data || []) {
+    if (!lastMessages[msg.conversation_id]) {
+      lastMessages[msg.conversation_id] = msg;
+    }
+  }
+  return lastMessages;
+}
+
+// localStorage helpers for conversation metadata
+const CONVERSATIONS_META_KEY = 'conversationsMeta';
+
+export function getConversationsMeta(): Record<string, ConversationMeta> {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = localStorage.getItem(CONVERSATIONS_META_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+export function setConversationMeta(meta: ConversationMeta): void {
+  if (typeof window === 'undefined') return;
+  const all = getConversationsMeta();
+  all[meta.id] = meta;
+  localStorage.setItem(CONVERSATIONS_META_KEY, JSON.stringify(all));
+}
+
+export function updateConversationMetaLastMessage(
+  id: string,
+  lastMessage: string
+): void {
+  if (typeof window === 'undefined') return;
+  const all = getConversationsMeta();
+  if (all[id]) {
+    all[id].lastMessage = lastMessage;
+    all[id].lastMessageAt = new Date().toISOString();
+    localStorage.setItem(CONVERSATIONS_META_KEY, JSON.stringify(all));
+  }
 }
