@@ -1,5 +1,5 @@
 {
-  "name": "kloset",
+  "name": "dona-obra",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,19 +9,19 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@stripe/stripe-js": "^8.7.0",
+    "@ai-sdk/anthropic": "^1.0.10",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.95.3",
+    "ai": "^4.3.10",
     "clsx": "^2.1.1",
+    "dotenv": "^17.3.1",
     "lucide-react": "^0.564.0",
     "next": "16.1.6",
-    "next-intl": "^4.8.2",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "sharp": "^0.34.5",
-    "stripe": "^20.3.1",
     "tailwind-merge": "^3.4.0",
-    "zod": "^4.3.6"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

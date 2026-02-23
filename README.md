@@ -1,149 +1,165 @@
-# KLOSET - Authentic Luxury Fashion Marketplace
+# Doña Obra 👷‍♀️
 
-A Next.js marketplace platform for buying and selling authenticated luxury fashion items.
+Chatbot estimateur de services pour la maison au Panama. Doña Obra est votre vecina de confiance qui connaît tous les meilleurs prestataires de services de la ville.
 
-## 🚀 Tech Stack
+## 🎯 Concept
 
-- **Framework**: Next.js 14+ (App Router)
-- **Language**: TypeScript (strict mode)
-- **Styling**: Tailwind CSS
-- **Internationalization**: next-intl (es, en, fr, zh)
-- **Database**: Supabase (PostgreSQL)
-- **Authentication**: Supabase Auth
-- **Storage**: Supabase Storage
-- **Payments**: Stripe Connect
-- **Fonts**: Fraunces (serif), Outfit (sans-serif), Noto Sans SC (Chinese)
+Application web Next.js qui simule un chatbot WhatsApp permettant à un utilisateur de :
+1. Décrire son besoin (texte + photos)
+2. Recevoir une estimation de prix automatique via IA (Claude)
+3. Recevoir des recommandations de prestataires
 
-## 📁 Project Structure
+## 🛠 Stack Technique
 
-```
-kloset/
-├── src/
-│   ├── app/
-│   │   ├── [locale]/           # Localized routes
-│   │   │   ├── page.tsx        # Homepage
-│   │   │   ├── explore/        # Product catalog
-│   │   │   ├── product/[id]/   # Product detail
-│   │   │   ├── sell/           # Sell flow
-│   │   │   ├── auth/           # Authentication
-│   │   │   └── dashboard/      # User dashboard
-│   │   └── layout.tsx
-│   ├── components/
-│   │   ├── ui/                 # Reusable UI components
-│   │   ├── layout/             # Layout components (Navbar, Footer)
-│   │   ├── product/            # Product-specific components
-│   │   └── auth/               # Auth components
-│   ├── lib/
-│   │   ├── supabase/           # Supabase clients
-│   │   ├── utils.ts            # Utility functions
-│   │   └── stripe.ts           # Stripe integration
-│   ├── i18n/                   # i18n configuration
-│   ├── types/                  # TypeScript type definitions
-│   └── middleware.ts           # Next.js middleware
-├── messages/                    # Translation files (es, en, fr, zh)
-├── supabase/
-│   └── schema.sql              # Database schema
-└── public/
-```
+- **Next.js 14+** (App Router)
+- **TypeScript**
+- **Tailwind CSS**
+- **Supabase** (base de données)
+- **Claude API** (Anthropic) - via Vercel AI SDK
+- **Vercel AI SDK** pour le streaming
 
-## 🛠 Setup
-
-1. **Clone the repository**
+## 📦 Installation
 
 ```bash
-git clone https://github.com/mozzistudio/kloset.git
-cd kloset
-```
-
-2. **Install dependencies**
-
-```bash
+# Installer les dépendances
 npm install
+
+# Copier le fichier d'environnement
+cp .env.local.example .env.local
+
+# Éditer .env.local avec vos clés API
 ```
 
-3. **Set up environment variables**
+## 🗄 Configuration Supabase
 
-Copy `.env.local.example` to `.env.local` and fill in your credentials:
+### 1. Créer les tables
+
+Exécutez le fichier de migration dans le SQL Editor de Supabase :
+
+```bash
+supabase/migrations/001_initial_schema.sql
+```
+
+Ou directement dans votre dashboard Supabase : https://supabase.com/dashboard/project/qzfioaiafroyxpcsrupf
+
+### 2. Insérer les données de seed
+
+Exécutez le fichier seed dans le SQL Editor :
+
+```bash
+supabase/seed.sql
+```
+
+Cela créera 15+ prestataires avec leurs avis.
+
+## 🔑 Variables d'environnement
+
+Créez un fichier `.env.local` avec :
 
 ```env
+# Anthropic API Key
+ANTHROPIC_API_KEY=sk-ant-...
+
 # Supabase
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+NEXT_PUBLIC_SUPABASE_URL=https://qzfioaiafroyxpcsrupf.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
 
-# Stripe
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
-STRIPE_SECRET_KEY=your_stripe_secret_key
-STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
-
-# App
+# App URL
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-4. **Set up Supabase**
+### Où trouver les clés :
 
-- Create a new Supabase project
-- Run the SQL schema in `supabase/schema.sql` in the Supabase SQL editor
-- Create a storage bucket named `products`
+- **ANTHROPIC_API_KEY** : https://console.anthropic.com/
+- **Supabase keys** : Dashboard Supabase → Settings → API
 
-5. **Run the development server**
+## 🚀 Lancer l'application
 
 ```bash
+# Mode développement
 npm run dev
+
+# Build de production
+npm run build
+npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+L'app sera disponible sur http://localhost:3000
 
-## 🌍 Internationalization
+## 📱 Utilisation
 
-The app supports 4 locales:
-- **Spanish (es)** - Default
-- **English (en)**
-- **French (fr)**
-- **Simplified Chinese (zh)**
+1. Ouvrez l'application
+2. Doña Obra vous accueille avec son message de bienvenue
+3. Décrivez votre besoin (vous pouvez ajouter des photos)
+4. Doña Obra analyse et vous donne une estimation de prix
+5. Elle vous recommande 3 prestataires pertinents
+6. Cliquez sur "Ver más" pour voir les détails d'un prestataire
+7. Cliquez sur "Contactar" pour obtenir les coordonnées (WhatsApp, téléphone)
 
-All user-facing text is translated using next-intl. Translation files are in `/messages/`.
+## 🎨 Personnalité de Doña Obra
 
-## 📦 Features
+Doña Obra est une panameña de 48 ans qui connaît tous les bons maestros de la ville. Elle parle avec :
+- Des expressions locales ("dimelo", "tranqui", "ese man es bueno")
+- De l'honnêteté directe sur les prix
+- Des références personnelles aux prestataires
+- Des emojis stratégiques 👷‍♀️ 💪 🔧
 
-### Current
-- ✅ Multi-language support (4 locales)
-- ✅ Responsive design
-- ✅ Product catalog with filters
-- ✅ Product detail pages
-- ✅ Multi-step sell flow
-- ✅ Authentication pages
-- ✅ User dashboard
-- ✅ Supabase integration setup
+## 📂 Structure du projet
 
-### Coming Soon
-- 🔄 Stripe Connect integration
-- 🔄 Real-time messaging
-- 🔄 Email notifications
-- 🔄 Admin panel
-- 🔄 Mobile app
-- 🔄 SEO optimization
-- 🔄 Analytics
-- 🔄 WhatsApp integration
-- 🔄 Physical authentication workflow
-- 🔄 E2E testing
-- 🔄 AI features (auto-categorization, price suggestions)
-- 🔄 Social features
+```
+/src
+  /app
+    /api/chat          → API route pour Claude
+    layout.tsx         → Layout principal
+    page.tsx           → Page unique (le chatbot)
+    globals.css        → Styles globaux
+  /components
+    Chat.tsx           → Composant principal
+    MessageBubble.tsx  → Bulle de message
+    ChatInput.tsx      → Zone de saisie
+    EstimationCard.tsx → Card d'estimation
+    ProviderCard.tsx   → Card de prestataire
+    ProviderCarousel.tsx → Carrousel de prestataires
+    ProviderModal.tsx  → Modal détails prestataire
+    ContactModal.tsx   → Modal de contact
+    TypingIndicator.tsx → Indicateur de saisie
+    ImagePreview.tsx   → Prévisualisation d'images
+  /lib
+    types.ts           → Types TypeScript
+    supabase.ts        → Client Supabase
+    providers.ts       → Fonctions prestataires
+    conversations.ts   → Fonctions conversations
+/supabase
+  /migrations          → Migrations SQL
+  seed.sql            → Données de seed
+```
 
-## 🚢 Deployment
-
-The app is designed to be deployed on Vercel:
+## 🚢 Déploiement sur Vercel
 
 ```bash
+# Push sur GitHub
+git add .
+git commit -m "Initial commit"
+git push origin main
+
+# Déployer sur Vercel
 vercel
 ```
 
-Make sure to set up your environment variables in the Vercel dashboard.
+N'oubliez pas de configurer les variables d'environnement dans les settings Vercel.
 
-## 📝 License
+## 📝 Notes
 
-All rights reserved © 2026 Kloset
+- L'app ne requiert pas d'authentification (MVP)
+- Les conversations sont sauvegardées dans Supabase
+- Les images sont envoyées en base64 à Claude (pas de storage pour le MVP)
+- Mobile-first, optimisé pour les petits écrans
 
-## 🤝 Contributing
+## 🤝 Contribuer
 
-This is a private project. For questions or support, contact the development team.
+Pour l'instant, c'est un MVP. Les contributions ne sont pas encore ouvertes.
+
+## 📄 Licence
+
+Propriétaire - Mozzi Studio
