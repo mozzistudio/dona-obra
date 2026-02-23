@@ -82,3 +82,20 @@ export interface ChatMessage {
   topPickId?: string;
   timestamp: Date;
 }
+
+export interface ConversationMeta {
+  id: string;
+  type: 'dona_obra' | 'provider';
+  title: string;
+  lastMessage: string;
+  lastMessageAt: string;
+  providerName?: string;
+  providerId?: string;
+  providerAvatar?: string;
+}
+
+export interface ShareProjectData {
+  provider: Provider;
+  estimation: EstimationData;
+  summary: string;
+}

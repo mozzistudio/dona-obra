@@ -1,15 +1,33 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
-export const metadata: Metadata = {
-  title: 'Doña Obra - Tu vecina de confianza',
-  description: 'Encuentra los mejores prestatarios de servicios para tu hogar en Panamá',
-};
-
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
+};
+
+export const metadata: Metadata = {
+  title: {
+    default: 'Doña Obra - Servicios del Hogar en Panamá',
+    template: '%s | Doña Obra',
+  },
+  description:
+    'Encuentra plomeros, electricistas, pintores y más profesionales verificados en Panamá. Estimaciones al instante, precios justos.',
+  keywords: [
+    'servicios del hogar Panamá',
+    'plomero Panamá',
+    'electricista Panamá',
+    'reparaciones hogar',
+    'Doña Obra',
+  ],
+  openGraph: {
+    title: 'Doña Obra - Tu vecina de confianza',
+    description:
+      'Conecta con profesionales verificados en Panamá. Estimaciones al instante.',
+    locale: 'es_PA',
+    type: 'website',
+  },
 };
 
 export default function RootLayout({

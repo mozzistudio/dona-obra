@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useChat } from 'ai/react';
 import { ChatMessage, EstimationData, Provider } from '@/lib/types';
 import MessageBubble from './MessageBubble';
@@ -8,7 +8,7 @@ import ChatInput from './ChatInput';
 import TypingIndicator from './TypingIndicator';
 import { createConversation, saveMessage, getConversationMessages } from '@/lib/conversations';
 import { validateAndFetchProviders } from '@/lib/providers';
-import { RotateCcw, Home } from 'lucide-react';
+import { RotateCcw, Menu, Home } from 'lucide-react';
 import Link from 'next/link';
 
 const WELCOME_MESSAGE = `¡Ey, dimelo! 👷‍♀️ Soy Doña Obra, tu vecina de confianza pa' todo lo que es reparaciones y servicios del hogar. Yo conozco a todos los buenos maestros de la ciudad 💪
@@ -16,139 +16,117 @@ const WELCOME_MESSAGE = `¡Ey, dimelo! 👷‍♀️ Soy Doña Obra, tu vecina d
 Cuéntame qué necesitas — mándame texto, fotos, lo que sea — y yo te digo cuánto te va a salir y quién te lo puede resolver. ¡Vamos al grano! 🔧`;
 
 interface ChatProps {
+  conversationId: string | null;
+  onConversationCreated?: (id: string) => void;
+  onShareProject?: (provider: Provider, estimation: EstimationData, summary: string) => void;
+  onMessageUpdate?: (conversationId: string, lastMessage: string) => void;
+  onToggleSidebar?: () => void;
   initialCategory?: string | null;
 }
 
-export default function Chat({ initialCategory }: ChatProps = {}) {
-  const [conversationId, setConversationId] = useState<string | null>(null);
+export default function Chat({
+  conversationId: externalConversationId,
+  onConversationCreated,
+  onShareProject,
+  onMessageUpdate,
+  onToggleSidebar,
+  initialCategory,
+}: ChatProps) {
+  const [conversationId, setConversationId] = useState<string | null>(externalConversationId);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [lastEstimation, setLastEstimation] = useState<EstimationData | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const initializedRef = useRef(false);
 
   const { messages, append, isLoading, setMessages } = useChat({
     api: '/api/chat',
     body: { conversationId },
     onFinish: async (message) => {
-      // Check for delimiter-separated content
       const delimiterIndex = message.content.indexOf('%%%ESTIMATION%%%');
 
       if (delimiterIndex !== -1) {
-        // Extract text and JSON parts
         const textPart = message.content.substring(0, delimiterIndex).trim();
         const jsonPart = message.content.substring(delimiterIndex + '%%%ESTIMATION%%%'.length).trim();
-
-        // Clean markdown code blocks if present
         const cleanJson = jsonPart.replace(/```json?\n?/g, '').replace(/```/g, '').trim();
 
         try {
           const estimation: EstimationData = JSON.parse(cleanJson);
+          setLastEstimation(estimation);
 
-          // Add natural text message first
-          if (textPart) {
-            const textMessage: ChatMessage = {
-              id: Date.now().toString(),
-              role: 'assistant',
-              content: textPart,
-              timestamp: new Date(),
-            };
-            setChatMessages((prev) => [...prev, textMessage]);
-          }
-
-          // Validate and fetch providers (with fallback to category search)
           const providers = await validateAndFetchProviders(
             estimation.recommendedProviderIds,
             estimation.category
           );
 
-          // Add estimation message with inline providers
-          const estimationMessage: ChatMessage = {
-            id: (Date.now() + 1).toString(),
+          // Message 1: Summary with estimation details inline
+          const intro = textPart || estimation.details;
+          const estimationText = `${intro}\n\n🔧 ${estimation.service}\n💰 $${estimation.priceRange.min} — $${estimation.priceRange.max}\n⭐ Complejidad: ${estimation.complexity.charAt(0).toUpperCase() + estimation.complexity.slice(1)}`;
+          const summaryMessage: ChatMessage = {
+            id: Date.now().toString(),
             role: 'assistant',
-            content: estimation.details,
-            estimation,
-            providers: providers.length > 0 ? providers : undefined,
-            topPickId: estimation.topPickId,
+            content: estimationText,
             timestamp: new Date(),
           };
-          setChatMessages((prev) => [...prev, estimationMessage]);
+          setChatMessages((prev) => [...prev, summaryMessage]);
 
-          // Add provider recommendation message
+          // Message 2: Provider cards (all in one compact message)
           if (providers.length > 0) {
             const providerMessage: ChatMessage = {
-              id: (Date.now() + 2).toString(),
+              id: (Date.now() + 1).toString(),
               role: 'assistant',
-              content: `Tranqui que yo te consigo a alguien de confianza 💪 ${estimation.topPickComment}`,
+              content: `Te encontré ${providers.length} profesionales de confianza 💪`,
+              providers,
+              topPickId: estimation.topPickId,
               timestamp: new Date(),
             };
             setChatMessages((prev) => [...prev, providerMessage]);
+            onMessageUpdate?.(conversationId!, `Te encontré ${providers.length} profesionales de confianza`);
           }
-
-          // Add final follow-up
-          const finalMessage: ChatMessage = {
-            id: (Date.now() + 3).toString(),
-            role: 'assistant',
-            content: '¿Eso es to\' o necesitas algo más? Aquí estoy pa\' lo que sea 🏠',
-            timestamp: new Date(),
-          };
-          setChatMessages((prev) => [...prev, finalMessage]);
-
         } catch (error) {
           console.error('Error parsing estimation JSON:', error);
-          // Fallback: treat as regular text message
           addAssistantMessage(message.content);
         }
       } else {
-        // Fallback: try to detect raw JSON estimation (no delimiter)
-        const trimmed = message.content.trim();
-        if (trimmed.startsWith('{') && trimmed.includes('"type"') && trimmed.includes('"estimation"')) {
-          const cleanJson = trimmed.replace(/```json?\n?/g, '').replace(/```/g, '').trim();
+        // Also handle raw JSON estimation (no delimiter)
+        if (message.content.trimStart().startsWith('{')) {
           try {
-            const estimation: EstimationData = JSON.parse(cleanJson);
+            const estimation: EstimationData = JSON.parse(message.content);
             if (estimation.type === 'estimation') {
-              // Validate and fetch providers
+              setLastEstimation(estimation);
               const providers = await validateAndFetchProviders(
                 estimation.recommendedProviderIds,
                 estimation.category
               );
 
-              // Add estimation message with inline providers
-              const estimationMessage: ChatMessage = {
-                id: (Date.now() + 1).toString(),
+              const estimationText = `${estimation.details}\n\n🔧 ${estimation.service}\n💰 $${estimation.priceRange.min} — $${estimation.priceRange.max}\n⭐ Complejidad: ${estimation.complexity.charAt(0).toUpperCase() + estimation.complexity.slice(1)}`;
+              const summaryMessage: ChatMessage = {
+                id: Date.now().toString(),
                 role: 'assistant',
-                content: estimation.details,
-                estimation,
-                providers: providers.length > 0 ? providers : undefined,
-                topPickId: estimation.topPickId,
+                content: estimationText,
                 timestamp: new Date(),
               };
-              setChatMessages((prev) => [...prev, estimationMessage]);
+              setChatMessages((prev) => [...prev, summaryMessage]);
 
-              // Add provider recommendation message
               if (providers.length > 0) {
                 const providerMessage: ChatMessage = {
-                  id: (Date.now() + 2).toString(),
+                  id: (Date.now() + 1).toString(),
                   role: 'assistant',
-                  content: `Tranqui que yo te consigo a alguien de confianza 💪 ${estimation.topPickComment}`,
+                  content: `Te encontré ${providers.length} profesionales de confianza 💪`,
+                  providers,
+                  topPickId: estimation.topPickId,
                   timestamp: new Date(),
                 };
                 setChatMessages((prev) => [...prev, providerMessage]);
+                onMessageUpdate?.(conversationId!, `Te encontré ${providers.length} profesionales de confianza`);
               }
-
-              // Add final follow-up
-              const finalMessage: ChatMessage = {
-                id: (Date.now() + 3).toString(),
-                role: 'assistant',
-                content: '¿Eso es to\' o necesitas algo más? Aquí estoy pa\' lo que sea 🏠',
-                timestamp: new Date(),
-              };
-              setChatMessages((prev) => [...prev, finalMessage]);
               return;
             }
           } catch {
-            // Not valid JSON, fall through to regular message
+            // Not JSON, fall through to regular message
           }
         }
-        // Regular message without estimation
         addAssistantMessage(message.content);
+        onMessageUpdate?.(conversationId!, message.content);
       }
     },
   });
@@ -165,29 +143,109 @@ export default function Chat({ initialCategory }: ChatProps = {}) {
 
   // Initialize conversation
   useEffect(() => {
+    if (initializedRef.current) return;
+    initializedRef.current = true;
+
     async function init() {
-      // Check for existing conversation in localStorage
-      const existingId = localStorage.getItem('conversationId');
+      if (externalConversationId) {
+        setConversationId(externalConversationId);
+        const dbMessages = await getConversationMessages(externalConversationId);
 
-      if (existingId) {
-        // Load existing conversation
-        setConversationId(existingId);
-        const messages = await getConversationMessages(existingId);
+        if (dbMessages.length > 0) {
+          const chatMsgs: ChatMessage[] = [];
 
-        if (messages.length > 0) {
-          // Convert to ChatMessage format
-          const chatMsgs: ChatMessage[] = messages.map((m) => ({
-            id: m.id,
-            role: m.role,
-            content: m.content,
-            images: m.image_urls || undefined,
-            estimation: m.metadata as EstimationData | undefined,
-            timestamp: new Date(m.created_at),
-          }));
+          for (const m of dbMessages) {
+            // Check if this message contains raw estimation delimiter
+            const delimIdx = m.content.indexOf('%%%ESTIMATION%%%');
+            if (delimIdx !== -1 && m.role === 'assistant') {
+              const textPart = m.content.substring(0, delimIdx).trim();
+              const jsonPart = m.content.substring(delimIdx + '%%%ESTIMATION%%%'.length).trim();
+              const cleanJson = jsonPart.replace(/```json?\n?/g, '').replace(/```/g, '').trim();
+
+              try {
+                const estimation: EstimationData = JSON.parse(cleanJson);
+                setLastEstimation(estimation);
+
+                const providers = await validateAndFetchProviders(
+                  estimation.recommendedProviderIds,
+                  estimation.category
+                );
+
+                // Message 1: Summary with estimation details inline
+                const intro = textPart || estimation.details;
+                const estimationText = `${intro}\n\n🔧 ${estimation.service}\n💰 $${estimation.priceRange.min} — $${estimation.priceRange.max}\n⭐ Complejidad: ${estimation.complexity.charAt(0).toUpperCase() + estimation.complexity.slice(1)}`;
+                chatMsgs.push({
+                  id: m.id,
+                  role: 'assistant',
+                  content: estimationText,
+                  timestamp: new Date(m.created_at),
+                });
+
+                // Message 2: Provider cards
+                if (providers.length > 0) {
+                  chatMsgs.push({
+                    id: m.id + '-providers',
+                    role: 'assistant',
+                    content: `Te encontré ${providers.length} profesionales de confianza 💪`,
+                    providers,
+                    topPickId: estimation.topPickId,
+                    timestamp: new Date(m.created_at),
+                  });
+                }
+                continue;
+              } catch {
+                // Fall through to normal message
+              }
+            }
+
+            // Check if entire content is raw JSON estimation (old format without delimiter)
+            if (m.role === 'assistant' && m.content.trimStart().startsWith('{')) {
+              try {
+                const estimation: EstimationData = JSON.parse(m.content);
+                if (estimation.type === 'estimation') {
+                  setLastEstimation(estimation);
+
+                  const providers = await validateAndFetchProviders(
+                    estimation.recommendedProviderIds,
+                    estimation.category
+                  );
+
+                  const estimationText2 = `${estimation.details}\n\n🔧 ${estimation.service}\n💰 $${estimation.priceRange.min} — $${estimation.priceRange.max}\n⭐ Complejidad: ${estimation.complexity.charAt(0).toUpperCase() + estimation.complexity.slice(1)}`;
+                  chatMsgs.push({
+                    id: m.id,
+                    role: 'assistant',
+                    content: estimationText2,
+                    timestamp: new Date(m.created_at),
+                  });
+
+                  if (providers.length > 0) {
+                    chatMsgs.push({
+                      id: m.id + '-providers',
+                      role: 'assistant',
+                      content: `Te encontré ${providers.length} profesionales de confianza 💪`,
+                      providers,
+                      topPickId: estimation.topPickId,
+                      timestamp: new Date(m.created_at),
+                    });
+                  }
+                  continue;
+                }
+              } catch {
+                // Not valid estimation JSON, fall through
+              }
+            }
+
+            chatMsgs.push({
+              id: m.id,
+              role: m.role,
+              content: m.content,
+              images: m.image_urls || undefined,
+              estimation: m.metadata as EstimationData | undefined,
+              timestamp: new Date(m.created_at),
+            });
+          }
+
           setChatMessages(chatMsgs);
-
-          // Don't reconstruct AI messages - just show visual history
-          // The AI will start fresh from this point
           return;
         }
       }
@@ -196,7 +254,7 @@ export default function Chat({ initialCategory }: ChatProps = {}) {
       const newId = await createConversation();
       if (newId) {
         setConversationId(newId);
-        localStorage.setItem('conversationId', newId);
+        onConversationCreated?.(newId);
       }
 
       // Add welcome message
@@ -208,14 +266,13 @@ export default function Chat({ initialCategory }: ChatProps = {}) {
       };
       setChatMessages([welcomeMsg]);
 
-      // Save welcome message to DB
       if (newId) {
         await saveMessage(newId, 'assistant', WELCOME_MESSAGE);
       }
     }
 
     init();
-  }, []);
+  }, [externalConversationId]);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -225,7 +282,6 @@ export default function Chat({ initialCategory }: ChatProps = {}) {
   const handleSendMessage = async (text: string, images: string[]) => {
     if (!conversationId) return;
 
-    // Add user message to chat
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       role: 'user',
@@ -235,45 +291,52 @@ export default function Chat({ initialCategory }: ChatProps = {}) {
     };
 
     setChatMessages((prev) => [...prev, userMessage]);
+    onMessageUpdate?.(conversationId, text);
 
-    // Save user message to DB
     await saveMessage(conversationId, 'user', text, images.length > 0 ? images : undefined);
 
-    // Build message content for AI
     let messageContent: any;
-
     if (images.length > 0) {
-      // Multimodal message with images
       const parts = [];
       if (text) {
         parts.push({ type: 'text', text });
       }
       images.forEach((image) => {
-        parts.push({
-          type: 'image',
-          image,
-        });
+        parts.push({ type: 'image', image });
       });
       messageContent = parts;
     } else {
-      // Text-only message
       messageContent = text;
     }
 
-    // Send to AI
-    await append({
-      role: 'user',
-      content: messageContent,
-    });
+    await append({ role: 'user', content: messageContent });
   };
 
+  const handleShareProject = useCallback((provider: Provider) => {
+    if (!onShareProject || !lastEstimation) return;
+
+    // Build summary from conversation messages
+    const userMessages = chatMessages
+      .filter((m) => m.role === 'user')
+      .map((m) => m.content);
+    const summary = userMessages.join(' ').slice(0, 300);
+
+    onShareProject(provider, lastEstimation, summary);
+  }, [onShareProject, lastEstimation, chatMessages]);
+
   return (
-    <div className="flex flex-col h-screen bg-cream">
-      {/* Header - Glass morphism */}
-      <div className="sticky top-0 z-10 bg-cream/92 backdrop-blur-xl border-b border-black/6 px-4 py-3 flex items-center gap-3 shadow-[0_2px_8px_rgba(0,0,0,0.04)] shrink-0">
-        <Link href="/" className="w-12 h-12 bg-gradient-to-br from-coral to-coral-dark rounded-lg flex items-center justify-center text-2xl shadow-[0_4px_12px_rgba(232,97,77,0.3)] hover:shadow-[0_6px_16px_rgba(232,97,77,0.4)] transition-shadow">
-          👷‍♀️
-        </Link>
+    <div className="flex flex-col flex-1 h-full bg-cream min-w-0">
+      {/* Header */}
+      <div className="bg-white/80 backdrop-blur-md border-b border-sand px-4 py-3 flex items-center gap-3 shadow-sm shrink-0">
+        {onToggleSidebar && (
+          <button
+            onClick={onToggleSidebar}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors md:hidden"
+          >
+            <Menu className="w-5 h-5 text-gray-600" />
+          </button>
+        )}
+        <img src="/dona-obra-logo.png" alt="Doña Obra" className="w-10 h-10 rounded-full object-cover shadow-lg" />
         <div className="flex-1">
           <h1 className="font-display font-black text-charcoal text-lg">Doña Obra</h1>
           <div className="flex items-center gap-1.5">
@@ -290,8 +353,8 @@ export default function Chat({ initialCategory }: ChatProps = {}) {
         </Link>
         <button
           onClick={() => {
-            localStorage.clear();
-            window.location.href = '/chat';
+            localStorage.removeItem('conversationId');
+            window.location.reload();
           }}
           className="p-2.5 hover:bg-warm rounded-full transition-colors"
           title="Nueva consulta"
@@ -303,7 +366,11 @@ export default function Chat({ initialCategory }: ChatProps = {}) {
       {/* Messages area */}
       <div className="flex-1 overflow-y-auto px-4 py-6">
         {chatMessages.map((message) => (
-          <MessageBubble key={message.id} message={message} />
+          <MessageBubble
+            key={message.id}
+            message={message}
+            onShareProject={handleShareProject}
+          />
         ))}
 
         {isLoading && (
@@ -316,7 +383,11 @@ export default function Chat({ initialCategory }: ChatProps = {}) {
       </div>
 
       {/* Input area */}
-      <ChatInput onSend={handleSendMessage} disabled={isLoading} initialMessage={initialCategory ? `Necesito ayuda con ${initialCategory}` : undefined} />
+      <ChatInput
+        onSend={handleSendMessage}
+        disabled={isLoading}
+        initialMessage={initialCategory ? `Necesito ayuda con ${initialCategory}` : undefined}
+      />
     </div>
   );
 }

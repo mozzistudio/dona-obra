@@ -63,7 +63,7 @@ export default function ProviderModal({ provider, onClose, onContact }: Provider
           {provider.dona_obra_comment && (
             <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4">
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-2xl">👷‍♀️</span>
+                <img src="/dona-obra-logo.png" alt="Doña Obra" className="w-7 h-7 rounded-full object-cover" />
                 <span className="font-bold text-gray-800">Doña Obra dice:</span>
               </div>
               <p className="text-gray-700 leading-relaxed">{provider.dona_obra_comment}</p>
