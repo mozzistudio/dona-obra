@@ -217,25 +217,28 @@ export default function Chat({ initialCategory }: ChatProps = {}) {
   };
 
   return (
-    <div className="flex flex-col flex-1 h-full bg-cream">
-      {/* Header */}
-      <div className="bg-white/80 backdrop-blur-md border-b border-sand px-4 py-3 flex items-center gap-3 shadow-sm shrink-0">
-        <div className="w-12 h-12 bg-coral rounded-full flex items-center justify-center text-2xl shadow-lg">
+    <div className="flex flex-col h-screen bg-cream">
+      {/* Header - Glass morphism */}
+      <div className="sticky top-0 z-10 bg-cream/92 backdrop-blur-xl border-b border-black/6 px-4 py-3 flex items-center gap-3 shadow-[0_2px_8px_rgba(0,0,0,0.04)] shrink-0">
+        <div className="w-12 h-12 bg-gradient-to-br from-coral to-coral-dark rounded-lg flex items-center justify-center text-2xl shadow-[0_4px_12px_rgba(232,97,77,0.3)]">
           👷‍♀️
         </div>
         <div className="flex-1">
-          <h1 className="font-bold text-gray-800">Doña Obra</h1>
-          <p className="text-sm text-jungle font-medium">en línea</p>
+          <h1 className="font-display font-black text-charcoal text-lg">Doña Obra</h1>
+          <div className="flex items-center gap-1.5">
+            <div className="w-2 h-2 bg-jungle rounded-full"></div>
+            <p className="text-sm text-jungle font-medium">En línea</p>
+          </div>
         </div>
         <button
           onClick={() => {
             localStorage.clear();
-            window.location.reload();
+            window.location.href = '/';
           }}
-          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          className="p-2.5 hover:bg-warm rounded-full transition-colors"
           title="Nueva consulta"
         >
-          <RotateCcw className="w-5 h-5 text-gray-500" />
+          <RotateCcw className="w-5 h-5 text-muted" />
         </button>
       </div>
 
