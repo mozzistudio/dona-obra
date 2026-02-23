@@ -75,3 +75,24 @@ export async function getProviderReviews(providerId: string): Promise<Review[]> 
 
   return data || [];
 }
+
+export async function validateAndFetchProviders(
+  providerIds: string[],
+  fallbackCategory?: string
+): Promise<Provider[]> {
+  let providers = await getProvidersByIds(providerIds);
+
+  // If we got fewer than 2 valid providers, supplement with category search
+  if (providers.length < 2 && fallbackCategory) {
+    const { data } = await supabase
+      .from('providers')
+      .select('*')
+      .contains('categories', [fallbackCategory])
+      .order('rating', { ascending: false })
+      .limit(5 - providers.length);
+
+    providers = [...providers, ...(data || [])];
+  }
+
+  return providers;
+}
