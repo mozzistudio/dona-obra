@@ -1,6 +1,7 @@
 import { ChatMessage } from '@/lib/types';
 import ImagePreview from './ImagePreview';
 import EstimationCard from './EstimationCard';
+import ProviderCarousel from './ProviderCarousel';
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -22,7 +23,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
         <div
           className={`rounded-2xl px-4 py-3 shadow-sm ${
             isUser
-              ? 'bg-[#DCF8C6] rounded-br-sm'
+              ? 'bg-coral text-white rounded-br-sm'
               : 'bg-white rounded-bl-sm'
           }`}
         >
@@ -33,7 +34,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
           )}
 
           {message.content && (
-            <p className="text-gray-800 whitespace-pre-wrap leading-relaxed">
+            <p className={`whitespace-pre-wrap leading-relaxed ${isUser ? 'text-white' : 'text-gray-800'}`}>
               {message.content}
             </p>
           )}
@@ -42,6 +43,16 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
         {message.estimation && (
           <div className="mt-3">
             <EstimationCard estimation={message.estimation} />
+          </div>
+        )}
+
+        {message.providers && message.providers.length > 0 && (
+          <div className="mt-3">
+            <ProviderCarousel
+              providers={message.providers}
+              topPickId={message.topPickId}
+              estimation={message.estimation}
+            />
           </div>
         )}
 

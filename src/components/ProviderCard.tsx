@@ -1,20 +1,30 @@
-import { Provider } from '@/lib/types';
-import { Star, MapPin, DollarSign, Tag } from 'lucide-react';
+import { Provider, EstimationData } from '@/lib/types';
+import { Star, MapPin, DollarSign, Tag, Award, Clock } from 'lucide-react';
 
 interface ProviderCardProps {
   provider: Provider;
-  onViewMore: () => void;
-  onContact: () => void;
   isTopPick?: boolean;
+  estimation?: EstimationData;
 }
 
-export default function ProviderCard({ provider, onViewMore, onContact, isTopPick }: ProviderCardProps) {
+export default function ProviderCard({ provider, isTopPick, estimation }: ProviderCardProps) {
+  const handleContact = () => {
+    // Clear existing conversation
+    localStorage.removeItem('conversationId');
+
+    // Get primary category
+    const primaryCategory = provider.categories[0] || 'servicio';
+
+    // Redirect to fresh chat with category
+    window.location.href = `/chat?category=${encodeURIComponent(primaryCategory)}`;
+  };
+
   return (
-    <div className={`bg-white rounded-2xl shadow-md overflow-hidden min-w-[280px] max-w-[320px] border-2 ${
-      isTopPick ? 'border-yellow-400' : 'border-gray-100'
+    <div className={`bg-warm rounded-2xl shadow-md overflow-hidden min-w-[320px] max-w-[380px] border-2 transition-all hover:shadow-xl ${
+      isTopPick ? 'border-coral hover:border-coral-dark' : 'border-gray-100 hover:border-coral'
     }`}>
       {isTopPick && (
-        <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-white text-center py-1 text-sm font-bold">
+        <div className="bg-gradient-to-r from-coral to-coral-dark text-white text-center py-1 text-sm font-bold">
           ⭐ Recomendación Top de Doña Obra
         </div>
       )}
@@ -53,7 +63,7 @@ export default function ProviderCard({ provider, onViewMore, onContact, isTopPic
         {provider.price_min && provider.price_max && (
           <div className="flex items-center gap-2 text-gray-600 text-sm">
             <DollarSign className="w-4 h-4" />
-            <span className="font-semibold text-green-600">
+            <span className="font-semibold text-jungle">
               Desde ${provider.price_min}
             </span>
           </div>
@@ -66,7 +76,7 @@ export default function ProviderCard({ provider, onViewMore, onContact, isTopPic
             {provider.categories.slice(0, 2).map((cat, idx) => (
               <span
                 key={idx}
-                className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full"
+                className="text-xs bg-sand text-coral px-2 py-1 rounded-full"
               >
                 {cat.charAt(0).toUpperCase() + cat.slice(1)}
               </span>
@@ -74,21 +84,71 @@ export default function ProviderCard({ provider, onViewMore, onContact, isTopPic
           </div>
         </div>
 
-        {/* Action buttons */}
-        <div className="flex gap-2 pt-2">
-          <button
-            onClick={onViewMore}
-            className="flex-1 px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm"
-          >
-            Ver más
-          </button>
-          <button
-            onClick={onContact}
-            className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium text-sm flex items-center justify-center gap-1"
-          >
-            📱 Contactar
-          </button>
-        </div>
+        {/* Description */}
+        {provider.description && (
+          <div className="pt-2 border-t border-sand">
+            <p className="text-sm text-gray-700 line-clamp-2">
+              {provider.description}
+            </p>
+          </div>
+        )}
+
+        {/* Experience */}
+        {provider.years_experience && (
+          <div className="flex items-center gap-2 text-gray-600 text-sm">
+            <Award className="w-4 h-4 text-jungle" />
+            <span>{provider.years_experience} años de experiencia</span>
+          </div>
+        )}
+
+        {/* Availability */}
+        {provider.availability && (
+          <div className="flex items-center gap-2 text-gray-600 text-sm">
+            <Clock className="w-4 h-4 text-jungle" />
+            <span>{provider.availability}</span>
+          </div>
+        )}
+
+        {/* Services */}
+        {provider.services && provider.services.length > 0 && (
+          <div className="space-y-1">
+            <p className="text-xs font-semibold text-gray-600">Servicios:</p>
+            <div className="flex gap-2 flex-wrap">
+              {provider.services.slice(0, 3).map((service, idx) => (
+                <span
+                  key={idx}
+                  className="text-xs bg-sand text-coral px-2 py-1 rounded-full"
+                >
+                  {service}
+                </span>
+              ))}
+              {provider.services.length > 3 && (
+                <span className="text-xs text-muted">+{provider.services.length - 3} más</span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Doña Obra's comment */}
+        {provider.dona_obra_comment && (
+          <div className="bg-sand border border-coral/30 rounded-lg p-3">
+            <div className="flex items-start gap-2 mb-1">
+              <span className="text-lg">👷‍♀️</span>
+              <p className="text-xs font-semibold text-coral">Doña Obra dice:</p>
+            </div>
+            <p className="text-sm text-gray-700 leading-relaxed">
+              {provider.dona_obra_comment}
+            </p>
+          </div>
+        )}
+
+        {/* Contact button */}
+        <button
+          onClick={handleContact}
+          className="w-full px-4 py-2 bg-coral text-white rounded-lg hover:bg-coral-dark transition-colors font-medium text-sm flex items-center justify-center gap-1 shadow-md hover:shadow-lg"
+        >
+          📱 Contactar
+        </button>
       </div>
     </div>
   );

@@ -7,26 +7,51 @@ import ImagePreview from './ImagePreview';
 interface ChatInputProps {
   onSend: (message: string, images: string[]) => void;
   disabled?: boolean;
+  initialMessage?: string;
 }
 
-export default function ChatInput({ onSend, disabled }: ChatInputProps) {
-  const [message, setMessage] = useState('');
+export default function ChatInput({ onSend, disabled, initialMessage }: ChatInputProps) {
+  const [message, setMessage] = useState(initialMessage || '');
   const [images, setImages] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const compressImage = async (file: File, maxWidth = 1024, quality = 0.7): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        img.src = e.target?.result as string;
+      };
+
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth) {
+          height = (height * maxWidth) / width;
+          width = maxWidth;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+
+      reader.readAsDataURL(file);
+    });
+  };
 
   const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
-    const imagePromises = Array.from(files).map((file) => {
-      return new Promise<string>((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          resolve(reader.result as string);
-        };
-        reader.readAsDataURL(file);
-      });
-    });
+    const imagePromises = Array.from(files).map((file) => compressImage(file, 1024, 0.7));
 
     const newImages = await Promise.all(imagePromises);
     setImages((prev) => [...prev, ...newImages]);
@@ -52,7 +77,7 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
   };
 
   return (
-    <div className="border-t border-gray-200 bg-white p-4">
+    <div className="border-t border-sand bg-white p-4 shrink-0">
       {/* Image preview */}
       {images.length > 0 && (
         <div className="mb-3">
@@ -65,7 +90,7 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={disabled}
-          className="p-3 text-gray-500 hover:bg-gray-100 rounded-full transition-colors disabled:opacity-50"
+          className="p-3 text-muted hover:bg-warm rounded-full transition-colors disabled:opacity-50"
         >
           <Paperclip className="w-5 h-5" />
         </button>
@@ -86,7 +111,7 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
             onKeyPress={handleKeyPress}
             disabled={disabled}
             placeholder="Escribe tu mensaje..."
-            className="w-full px-4 py-3 bg-gray-100 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50"
+            className="w-full px-4 py-3 bg-warm rounded-full resize-none focus:outline-none focus:ring-2 focus:ring-coral disabled:opacity-50"
             rows={1}
             style={{
               minHeight: '48px',
@@ -98,7 +123,7 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
         <button
           onClick={handleSend}
           disabled={disabled || (!message.trim() && images.length === 0)}
-          className="p-3 bg-green-500 text-white rounded-full hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="p-3 bg-coral text-white rounded-full hover:bg-coral-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Send className="w-5 h-5" />
         </button>

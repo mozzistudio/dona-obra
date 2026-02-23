@@ -1,20 +1,15 @@
 'use client';
 
-import { useState } from 'react';
-import { Provider } from '@/lib/types';
+import { Provider, EstimationData } from '@/lib/types';
 import ProviderCard from './ProviderCard';
-import ProviderModal from './ProviderModal';
-import ContactModal from './ContactModal';
 
 interface ProviderCarouselProps {
   providers: Provider[];
   topPickId?: string;
+  estimation?: EstimationData;
 }
 
-export default function ProviderCarousel({ providers, topPickId }: ProviderCarouselProps) {
-  const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
-  const [contactProvider, setContactProvider] = useState<Provider | null>(null);
-
+export default function ProviderCarousel({ providers, topPickId, estimation }: ProviderCarouselProps) {
   return (
     <>
       <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
@@ -23,30 +18,11 @@ export default function ProviderCarousel({ providers, topPickId }: ProviderCarou
             <ProviderCard
               provider={provider}
               isTopPick={provider.id === topPickId}
-              onViewMore={() => setSelectedProvider(provider)}
-              onContact={() => setContactProvider(provider)}
+              estimation={estimation}
             />
           </div>
         ))}
       </div>
-
-      {selectedProvider && (
-        <ProviderModal
-          provider={selectedProvider}
-          onClose={() => setSelectedProvider(null)}
-          onContact={() => {
-            setContactProvider(selectedProvider);
-            setSelectedProvider(null);
-          }}
-        />
-      )}
-
-      {contactProvider && (
-        <ContactModal
-          provider={contactProvider}
-          onClose={() => setContactProvider(null)}
-        />
-      )}
 
       <style jsx global>{`
         .scrollbar-hide::-webkit-scrollbar {

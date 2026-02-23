@@ -6,86 +6,97 @@ import { ChatMessage, EstimationData, Provider } from '@/lib/types';
 import MessageBubble from './MessageBubble';
 import ChatInput from './ChatInput';
 import TypingIndicator from './TypingIndicator';
-import ProviderCarousel from './ProviderCarousel';
 import { createConversation, saveMessage, getConversationMessages } from '@/lib/conversations';
-import { getProvidersByIds } from '@/lib/providers';
+import { validateAndFetchProviders } from '@/lib/providers';
+import { RotateCcw } from 'lucide-react';
 
 const WELCOME_MESSAGE = `¡Ey, dimelo! 👷‍♀️ Soy Doña Obra, tu vecina de confianza pa' todo lo que es reparaciones y servicios del hogar. Yo conozco a todos los buenos maestros de la ciudad 💪
 
 Cuéntame qué necesitas — mándame texto, fotos, lo que sea — y yo te digo cuánto te va a salir y quién te lo puede resolver. ¡Vamos al grano! 🔧`;
 
-export default function Chat() {
+interface ChatProps {
+  initialCategory?: string | null;
+}
+
+export default function Chat({ initialCategory }: ChatProps = {}) {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  const [recommendedProviders, setRecommendedProviders] = useState<{
-    providers: Provider[];
-    topPickId?: string;
-    topPickComment?: string;
-    estimationData?: EstimationData;
-  } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { messages, append, isLoading, setMessages } = useChat({
     api: '/api/chat',
     body: { conversationId },
     onFinish: async (message) => {
-      // Try to parse as estimation JSON
-      try {
-        const parsed = JSON.parse(message.content);
-        if (parsed.type === 'estimation') {
-          // This is an estimation response
-          const estimation: EstimationData = parsed;
+      // Check for delimiter-separated content
+      const delimiterIndex = message.content.indexOf('%%%ESTIMATION%%%');
 
-          // Add text before the card
-          const textBeforeCard = `Mira, te voy a ser honesta contigo. ${estimation.details}`;
+      if (delimiterIndex !== -1) {
+        // Extract text and JSON parts
+        const textPart = message.content.substring(0, delimiterIndex).trim();
+        const jsonPart = message.content.substring(delimiterIndex + '%%%ESTIMATION%%%'.length).trim();
 
-          const estimationMessage: ChatMessage = {
-            id: Date.now().toString(),
-            role: 'assistant',
-            content: textBeforeCard,
-            estimation,
-            timestamp: new Date(),
-          };
+        // Clean markdown code blocks if present
+        const cleanJson = jsonPart.replace(/```json?\n?/g, '').replace(/```/g, '').trim();
 
-          setChatMessages((prev) => [...prev, estimationMessage]);
+        try {
+          const estimation: EstimationData = JSON.parse(cleanJson);
 
-          // Load recommended providers
-          const providers = await getProvidersByIds(estimation.recommendedProviderIds);
-          setRecommendedProviders({
-            providers,
-            topPickId: estimation.topPickId,
-            topPickComment: estimation.topPickComment,
-            estimationData: estimation,
-          });
-
-          // Add Doña Obra's comment about providers after
-          setTimeout(() => {
-            const topPick = providers.find((p) => p.id === estimation.topPickId);
-            const followUpMessage: ChatMessage = {
-              id: (Date.now() + 1).toString(),
+          // Add natural text message first
+          if (textPart) {
+            const textMessage: ChatMessage = {
+              id: Date.now().toString(),
               role: 'assistant',
-              content: `Tranqui que yo te consigo a alguien de confianza 💪 Mira, estos son los que yo te recomiendo:\n\n${estimation.topPickComment}`,
+              content: textPart,
               timestamp: new Date(),
             };
-            setChatMessages((prev) => [...prev, followUpMessage]);
+            setChatMessages((prev) => [...prev, textMessage]);
+          }
 
-            // Final follow-up
-            setTimeout(() => {
-              const finalMessage: ChatMessage = {
-                id: (Date.now() + 2).toString(),
-                role: 'assistant',
-                content: '¿Eso es to\' o necesitas algo más? Aquí estoy pa\' lo que sea 🏠',
-                timestamp: new Date(),
-              };
-              setChatMessages((prev) => [...prev, finalMessage]);
-            }, 1000);
-          }, 500);
-        } else {
-          // Regular message
+          // Validate and fetch providers (with fallback to category search)
+          const providers = await validateAndFetchProviders(
+            estimation.recommendedProviderIds,
+            estimation.category
+          );
+
+          // Add estimation message with inline providers
+          const estimationMessage: ChatMessage = {
+            id: (Date.now() + 1).toString(),
+            role: 'assistant',
+            content: estimation.details,
+            estimation,
+            providers: providers.length > 0 ? providers : undefined,
+            topPickId: estimation.topPickId,
+            timestamp: new Date(),
+          };
+          setChatMessages((prev) => [...prev, estimationMessage]);
+
+          // Add provider recommendation message
+          if (providers.length > 0) {
+            const providerMessage: ChatMessage = {
+              id: (Date.now() + 2).toString(),
+              role: 'assistant',
+              content: `Tranqui que yo te consigo a alguien de confianza 💪 ${estimation.topPickComment}`,
+              timestamp: new Date(),
+            };
+            setChatMessages((prev) => [...prev, providerMessage]);
+          }
+
+          // Add final follow-up
+          const finalMessage: ChatMessage = {
+            id: (Date.now() + 3).toString(),
+            role: 'assistant',
+            content: '¿Eso es to\' o necesitas algo más? Aquí estoy pa\' lo que sea 🏠',
+            timestamp: new Date(),
+          };
+          setChatMessages((prev) => [...prev, finalMessage]);
+
+        } catch (error) {
+          console.error('Error parsing estimation JSON:', error);
+          // Fallback: treat as regular text message
           addAssistantMessage(message.content);
         }
-      } catch {
-        // Not JSON, regular message
+      } else {
+        // Regular message without estimation
         addAssistantMessage(message.content);
       }
     },
@@ -124,13 +135,8 @@ export default function Chat() {
           }));
           setChatMessages(chatMsgs);
 
-          // Reconstruct AI chat messages for context
-          const aiMessages = messages.map((m) => ({
-            id: m.id,
-            role: m.role,
-            content: m.content,
-          }));
-          setMessages(aiMessages);
+          // Don't reconstruct AI messages - just show visual history
+          // The AI will start fresh from this point
           return;
         }
       }
@@ -183,40 +189,54 @@ export default function Chat() {
     await saveMessage(conversationId, 'user', text, images.length > 0 ? images : undefined);
 
     // Build message content for AI
-    const messageContent = [];
+    let messageContent: any;
 
-    if (text) {
-      messageContent.push({ type: 'text', text });
-    }
-
-    // Add images if any
     if (images.length > 0) {
+      // Multimodal message with images
+      const parts = [];
+      if (text) {
+        parts.push({ type: 'text', text });
+      }
       images.forEach((image) => {
-        messageContent.push({
+        parts.push({
           type: 'image',
           image,
         });
       });
+      messageContent = parts;
+    } else {
+      // Text-only message
+      messageContent = text;
     }
 
     // Send to AI
     await append({
       role: 'user',
-      content: messageContent as any,
+      content: messageContent,
     });
   };
 
   return (
-    <div className="flex flex-col h-screen bg-[#ECE5DD]">
+    <div className="flex flex-col flex-1 h-full bg-cream">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3 shadow-sm">
-        <div className="w-12 h-12 bg-yellow-400 rounded-full flex items-center justify-center text-2xl">
+      <div className="bg-white/80 backdrop-blur-md border-b border-sand px-4 py-3 flex items-center gap-3 shadow-sm shrink-0">
+        <div className="w-12 h-12 bg-coral rounded-full flex items-center justify-center text-2xl shadow-lg">
           👷‍♀️
         </div>
         <div className="flex-1">
           <h1 className="font-bold text-gray-800">Doña Obra</h1>
-          <p className="text-sm text-green-500 font-medium">en línea</p>
+          <p className="text-sm text-jungle font-medium">en línea</p>
         </div>
+        <button
+          onClick={() => {
+            localStorage.clear();
+            window.location.reload();
+          }}
+          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          title="Nueva consulta"
+        >
+          <RotateCcw className="w-5 h-5 text-gray-500" />
+        </button>
       </div>
 
       {/* Messages area */}
@@ -231,21 +251,11 @@ export default function Chat() {
           </div>
         )}
 
-        {/* Provider recommendations */}
-        {recommendedProviders && (
-          <div className="mb-4">
-            <ProviderCarousel
-              providers={recommendedProviders.providers}
-              topPickId={recommendedProviders.topPickId}
-            />
-          </div>
-        )}
-
         <div ref={messagesEndRef} />
       </div>
 
       {/* Input area */}
-      <ChatInput onSend={handleSendMessage} disabled={isLoading} />
+      <ChatInput onSend={handleSendMessage} disabled={isLoading} initialMessage={initialCategory ? `Necesito ayuda con ${initialCategory}` : undefined} />
     </div>
   );
 }

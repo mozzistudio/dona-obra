@@ -1,21 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@900&family=DM+Sans:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --whatsapp-green: #25D366;
-  --whatsapp-bg: #ECE5DD;
-  --whatsapp-user-bubble: #DCF8C6;
+  --background: #FFFBF5;
+  --coral: #E8614D;
+  --coral-dark: #D14E3B;
+  --sand: #FFF5EB;
+  --cream: #FFFBF5;
+  --warm: #F9F3ED;
+  --jungle: #2D5F4A;
+  --jungle-dark: #1E4434;
+  --font-playfair: 'Playfair Display', serif;
+  --font-dm-sans: 'DM Sans', sans-serif;
 }
 
 body {
   margin: 0;
   padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--cream);
 }
 
 * {

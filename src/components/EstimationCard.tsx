@@ -12,7 +12,7 @@ export default function EstimationCard({ estimation }: EstimationCardProps) {
   };
 
   return (
-    <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-4 shadow-md max-w-md">
+    <div className="bg-gradient-to-br from-sand to-cream border-2 border-coral/30 rounded-2xl p-4 shadow-md max-w-md">
       <div className="flex items-center gap-2 mb-3">
         <span className="text-2xl">💰</span>
         <h3 className="font-bold text-gray-800 text-lg">Estimación de Doña Obra</h3>
@@ -26,7 +26,7 @@ export default function EstimationCard({ estimation }: EstimationCardProps) {
 
         <div>
           <span className="text-sm font-semibold text-gray-600">Rango estimado:</span>
-          <p className="text-2xl font-bold text-green-600">
+          <p className="text-3xl font-display font-black text-jungle">
             ${estimation.priceRange.min} — ${estimation.priceRange.max}
           </p>
         </div>
@@ -39,7 +39,7 @@ export default function EstimationCard({ estimation }: EstimationCardProps) {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg p-3 border border-green-100">
+      <div className="bg-white/50 rounded-lg p-3 border border-coral/20">
         <div className="flex items-start gap-2 mb-2">
           <span className="text-lg">📝</span>
           <h4 className="font-semibold text-gray-700">El consejo de Doña Obra:</h4>
