@@ -96,6 +96,56 @@ export default function Chat({ initialCategory }: ChatProps = {}) {
           addAssistantMessage(message.content);
         }
       } else {
+        // Fallback: try to detect raw JSON estimation (no delimiter)
+        const trimmed = message.content.trim();
+        if (trimmed.startsWith('{') && trimmed.includes('"type"') && trimmed.includes('"estimation"')) {
+          const cleanJson = trimmed.replace(/```json?\n?/g, '').replace(/```/g, '').trim();
+          try {
+            const estimation: EstimationData = JSON.parse(cleanJson);
+            if (estimation.type === 'estimation') {
+              // Validate and fetch providers
+              const providers = await validateAndFetchProviders(
+                estimation.recommendedProviderIds,
+                estimation.category
+              );
+
+              // Add estimation message with inline providers
+              const estimationMessage: ChatMessage = {
+                id: (Date.now() + 1).toString(),
+                role: 'assistant',
+                content: estimation.details,
+                estimation,
+                providers: providers.length > 0 ? providers : undefined,
+                topPickId: estimation.topPickId,
+                timestamp: new Date(),
+              };
+              setChatMessages((prev) => [...prev, estimationMessage]);
+
+              // Add provider recommendation message
+              if (providers.length > 0) {
+                const providerMessage: ChatMessage = {
+                  id: (Date.now() + 2).toString(),
+                  role: 'assistant',
+                  content: `Tranqui que yo te consigo a alguien de confianza 💪 ${estimation.topPickComment}`,
+                  timestamp: new Date(),
+                };
+                setChatMessages((prev) => [...prev, providerMessage]);
+              }
+
+              // Add final follow-up
+              const finalMessage: ChatMessage = {
+                id: (Date.now() + 3).toString(),
+                role: 'assistant',
+                content: '¿Eso es to\' o necesitas algo más? Aquí estoy pa\' lo que sea 🏠',
+                timestamp: new Date(),
+              };
+              setChatMessages((prev) => [...prev, finalMessage]);
+              return;
+            }
+          } catch {
+            // Not valid JSON, fall through to regular message
+          }
+        }
         // Regular message without estimation
         addAssistantMessage(message.content);
       }
