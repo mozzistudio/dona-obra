@@ -14,17 +14,19 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
       <div className={`max-w-[85%] md:max-w-[70%] ${isUser ? 'order-2' : 'order-1'}`}>
         {!isUser && (
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-2xl">👷‍♀️</span>
-            <span className="text-sm font-semibold text-gray-600">Doña Obra</span>
+          <div className="flex items-center gap-2 mb-1.5">
+            <div className="w-8 h-8 bg-gradient-to-br from-coral to-coral-dark rounded-lg flex items-center justify-center text-base shadow-sm">
+              👷‍♀️
+            </div>
+            <span className="text-sm font-semibold text-charcoal">Doña Obra</span>
           </div>
         )}
 
         <div
-          className={`rounded-2xl px-4 py-3 shadow-sm ${
+          className={`px-4 py-3 ${
             isUser
-              ? 'bg-coral text-white rounded-br-sm'
-              : 'bg-white rounded-bl-sm'
+              ? 'bg-coral text-white rounded-[18px_18px_4px_18px] shadow-[0_2px_8px_rgba(232,97,77,0.25)]'
+              : 'bg-white text-charcoal rounded-[18px_18px_18px_4px] shadow-[0_2px_8px_rgba(0,0,0,0.04)]'
           }`}
         >
           {message.images && message.images.length > 0 && (
@@ -34,7 +36,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
           )}
 
           {message.content && (
-            <p className={`whitespace-pre-wrap leading-relaxed ${isUser ? 'text-white' : 'text-gray-800'}`}>
+            <p className={`whitespace-pre-wrap leading-relaxed ${isUser ? 'text-white' : 'text-charcoal'}`}>
               {message.content}
             </p>
           )}
@@ -56,7 +58,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
           </div>
         )}
 
-        <p className="text-xs text-gray-400 mt-1 px-2">
+        <p className="text-xs text-muted mt-1.5 px-2">
           {message.timestamp.toLocaleTimeString('es-PA', {
             hour: '2-digit',
             minute: '2-digit',

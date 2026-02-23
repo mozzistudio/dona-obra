@@ -77,7 +77,7 @@ export default function ChatInput({ onSend, disabled, initialMessage }: ChatInpu
   };
 
   return (
-    <div className="border-t border-sand bg-white p-4 shrink-0">
+    <div className="border-t border-black/6 bg-white/80 backdrop-blur-md p-4 shrink-0">
       {/* Image preview */}
       {images.length > 0 && (
         <div className="mb-3">
@@ -111,7 +111,7 @@ export default function ChatInput({ onSend, disabled, initialMessage }: ChatInpu
             onKeyPress={handleKeyPress}
             disabled={disabled}
             placeholder="Escribe tu mensaje..."
-            className="w-full px-4 py-3 bg-warm rounded-full resize-none focus:outline-none focus:ring-2 focus:ring-coral disabled:opacity-50"
+            className="w-full px-5 py-3 bg-warm border-2 border-transparent rounded-[100px] resize-none focus:outline-none focus:border-coral/30 disabled:opacity-50 text-charcoal placeholder:text-muted/60 transition-colors"
             rows={1}
             style={{
               minHeight: '48px',
@@ -123,7 +123,7 @@ export default function ChatInput({ onSend, disabled, initialMessage }: ChatInpu
         <button
           onClick={handleSend}
           disabled={disabled || (!message.trim() && images.length === 0)}
-          className="p-3 bg-coral text-white rounded-full hover:bg-coral-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="p-3 bg-coral text-white rounded-full hover:bg-coral-dark transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_4px_12px_rgba(232,97,77,0.35)] hover:shadow-[0_8px_20px_rgba(232,97,77,0.4)]"
         >
           <Send className="w-5 h-5" />
         </button>

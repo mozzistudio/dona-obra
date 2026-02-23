@@ -8,7 +8,8 @@ import ChatInput from './ChatInput';
 import TypingIndicator from './TypingIndicator';
 import { createConversation, saveMessage, getConversationMessages } from '@/lib/conversations';
 import { validateAndFetchProviders } from '@/lib/providers';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, Home } from 'lucide-react';
+import Link from 'next/link';
 
 const WELCOME_MESSAGE = `¡Ey, dimelo! 👷‍♀️ Soy Doña Obra, tu vecina de confianza pa' todo lo que es reparaciones y servicios del hogar. Yo conozco a todos los buenos maestros de la ciudad 💪
 
@@ -96,6 +97,56 @@ export default function Chat({ initialCategory }: ChatProps = {}) {
           addAssistantMessage(message.content);
         }
       } else {
+        // Fallback: try to detect raw JSON estimation (no delimiter)
+        const trimmed = message.content.trim();
+        if (trimmed.startsWith('{') && trimmed.includes('"type"') && trimmed.includes('"estimation"')) {
+          const cleanJson = trimmed.replace(/```json?\n?/g, '').replace(/```/g, '').trim();
+          try {
+            const estimation: EstimationData = JSON.parse(cleanJson);
+            if (estimation.type === 'estimation') {
+              // Validate and fetch providers
+              const providers = await validateAndFetchProviders(
+                estimation.recommendedProviderIds,
+                estimation.category
+              );
+
+              // Add estimation message with inline providers
+              const estimationMessage: ChatMessage = {
+                id: (Date.now() + 1).toString(),
+                role: 'assistant',
+                content: estimation.details,
+                estimation,
+                providers: providers.length > 0 ? providers : undefined,
+                topPickId: estimation.topPickId,
+                timestamp: new Date(),
+              };
+              setChatMessages((prev) => [...prev, estimationMessage]);
+
+              // Add provider recommendation message
+              if (providers.length > 0) {
+                const providerMessage: ChatMessage = {
+                  id: (Date.now() + 2).toString(),
+                  role: 'assistant',
+                  content: `Tranqui que yo te consigo a alguien de confianza 💪 ${estimation.topPickComment}`,
+                  timestamp: new Date(),
+                };
+                setChatMessages((prev) => [...prev, providerMessage]);
+              }
+
+              // Add final follow-up
+              const finalMessage: ChatMessage = {
+                id: (Date.now() + 3).toString(),
+                role: 'assistant',
+                content: '¿Eso es to\' o necesitas algo más? Aquí estoy pa\' lo que sea 🏠',
+                timestamp: new Date(),
+              };
+              setChatMessages((prev) => [...prev, finalMessage]);
+              return;
+            }
+          } catch {
+            // Not valid JSON, fall through to regular message
+          }
+        }
         // Regular message without estimation
         addAssistantMessage(message.content);
       }
@@ -217,25 +268,35 @@ export default function Chat({ initialCategory }: ChatProps = {}) {
   };
 
   return (
-    <div className="flex flex-col flex-1 h-full bg-cream">
-      {/* Header */}
-      <div className="bg-white/80 backdrop-blur-md border-b border-sand px-4 py-3 flex items-center gap-3 shadow-sm shrink-0">
-        <div className="w-12 h-12 bg-coral rounded-full flex items-center justify-center text-2xl shadow-lg">
+    <div className="flex flex-col h-screen bg-cream">
+      {/* Header - Glass morphism */}
+      <div className="sticky top-0 z-10 bg-cream/92 backdrop-blur-xl border-b border-black/6 px-4 py-3 flex items-center gap-3 shadow-[0_2px_8px_rgba(0,0,0,0.04)] shrink-0">
+        <Link href="/" className="w-12 h-12 bg-gradient-to-br from-coral to-coral-dark rounded-lg flex items-center justify-center text-2xl shadow-[0_4px_12px_rgba(232,97,77,0.3)] hover:shadow-[0_6px_16px_rgba(232,97,77,0.4)] transition-shadow">
           👷‍♀️
-        </div>
+        </Link>
         <div className="flex-1">
-          <h1 className="font-bold text-gray-800">Doña Obra</h1>
-          <p className="text-sm text-jungle font-medium">en línea</p>
+          <h1 className="font-display font-black text-charcoal text-lg">Doña Obra</h1>
+          <div className="flex items-center gap-1.5">
+            <div className="w-2 h-2 bg-jungle rounded-full"></div>
+            <p className="text-sm text-jungle font-medium">En línea</p>
+          </div>
         </div>
+        <Link
+          href="/"
+          className="p-2.5 hover:bg-warm rounded-full transition-colors"
+          title="Ir al inicio"
+        >
+          <Home className="w-5 h-5 text-muted" />
+        </Link>
         <button
           onClick={() => {
             localStorage.clear();
-            window.location.reload();
+            window.location.href = '/chat';
           }}
-          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          className="p-2.5 hover:bg-warm rounded-full transition-colors"
           title="Nueva consulta"
         >
-          <RotateCcw className="w-5 h-5 text-gray-500" />
+          <RotateCcw className="w-5 h-5 text-muted" />
         </button>
       </div>
 

@@ -25,7 +25,10 @@ TU PERSONALIDAD:
 TU FLUJO DE TRABAJO:
 1. Saluda y pregunta qué necesita el usuario (solo en el primer mensaje)
 2. Si es necesario, haz 1-2 preguntas de clarificación prácticas (NO genéricas)
-3. Cuando tengas suficiente info, responde ÚNICAMENTE con un JSON válido en este formato EXACTO:
+3. Cuando tengas suficiente info, responde así:
+   - PRIMERO escribe tu respuesta natural en personaje (explicando el problema, dando contexto, etc.)
+   - LUEGO escribe el delimitador exacto: %%%ESTIMATION%%%
+   - LUEGO escribe el JSON de estimación en este formato EXACTO:
 {
   "type": "estimation",
   "category": "...",
@@ -37,7 +40,14 @@ TU FLUJO DE TRABAJO:
   "topPickId": "uuidX",
   "topPickComment": "tu comentario personal sobre tu favorito"
 }
-4. Si aún necesitas más info, responde en texto normal (en personaje)
+4. Si aún necesitas más info, responde en texto normal (en personaje), SIN el delimitador ni JSON.
+
+FORMATO DE RESPUESTA CON ESTIMACIÓN (ejemplo):
+---
+Tranqui mijo, eso que describes suena a un problema de la llave de paso o la tubería principal. Déjame te busco quién te puede ayudar... 🔧
+%%%ESTIMATION%%%
+{"type":"estimation","category":"plomería",...}
+---
 
 IMPORTANTE: recommendedProviderIds DEBEN ser UUIDs válidos del catálogo que se te proporciona.
 Elige los 3 más relevantes para la categoría detectada. Asegúrate de que los IDs existan en el catálogo.
@@ -56,7 +66,7 @@ RANGOS DE PRECIOS TÍPICOS EN PANAMÁ (USD):
 
 CATEGORÍAS VÁLIDAS: plomería, electricidad, pintura, limpieza, aire acondicionado, cerrajería, jardinería, albañilería, mudanzas, reparación de electrodomésticos
 
-Cuando detectes que el usuario necesita una estimación, asegúrate de dar SOLO el JSON sin texto adicional antes o después.`;
+REGLA CRÍTICA: Cuando des una estimación, SIEMPRE usa el formato texto + %%%ESTIMATION%%% + JSON. NUNCA respondas con solo JSON.`;
 
 export async function POST(req: Request) {
   try {
