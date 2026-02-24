@@ -119,6 +119,7 @@ export default function ServiciosPage() {
             <Link
               key={service.slug}
               href={`/chat?category=${service.slug}`}
+              target="_blank"
               className="group bg-white rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all duration-300 border border-black/[0.04] hover:border-coral/20 hover:-translate-y-0.5"
             >
               <div className="flex items-start gap-4">
@@ -159,6 +160,7 @@ export default function ServiciosPage() {
           </p>
           <Link
             href="/chat"
+            target="_blank"
             className="inline-flex items-center gap-2 bg-coral hover:bg-coral-dark text-white px-8 py-3.5 rounded-full font-semibold transition-all shadow-lg hover:shadow-xl active:scale-[0.98]"
           >
             Chatear con Dona Obra

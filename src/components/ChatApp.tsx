@@ -10,6 +10,7 @@ import {
   getConversationsMeta,
   setConversationMeta,
   updateConversationMetaLastMessage,
+  deleteEmptyConversations,
 } from '@/lib/conversations';
 import ConversationSidebar from './ConversationSidebar';
 import Chat from './Chat';
@@ -25,6 +26,9 @@ export default function ChatApp() {
   // Load conversations on mount
   useEffect(() => {
     async function loadConversations() {
+      // Clean up empty conversations (only welcome message, no user interaction)
+      await deleteEmptyConversations();
+
       // Load metadata from localStorage
       const meta = getConversationsMeta();
 

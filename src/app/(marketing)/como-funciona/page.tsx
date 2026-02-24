@@ -157,6 +157,7 @@ export default function ComoFuncionaPage() {
           </p>
           <Link
             href="/chat"
+            target="_blank"
             className="inline-flex items-center gap-2 bg-white text-coral hover:text-coral-dark px-8 py-3.5 rounded-full font-semibold transition-all shadow-lg hover:shadow-xl active:scale-[0.98]"
           >
             <MessageCircle className="w-5 h-5" />

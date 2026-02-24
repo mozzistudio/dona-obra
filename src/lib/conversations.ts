@@ -155,6 +155,53 @@ export async function getLastMessageForConversations(
   return lastMessages;
 }
 
+export async function getConversationIdsWithUserMessages(): Promise<Set<string>> {
+  const { data, error } = await supabase
+    .from('messages')
+    .select('conversation_id')
+    .eq('role', 'user');
+
+  if (error) {
+    console.error('Error fetching user messages:', error);
+    return new Set();
+  }
+
+  return new Set((data || []).map((d) => d.conversation_id));
+}
+
+export async function deleteEmptyConversations(): Promise<number> {
+  const allConvs = await getAllConversations();
+  if (allConvs.length === 0) return 0;
+
+  const withUserMessages = await getConversationIdsWithUserMessages();
+  const emptyIds = allConvs
+    .filter((c) => !withUserMessages.has(c.id))
+    .map((c) => c.id);
+
+  if (emptyIds.length === 0) return 0;
+
+  // Delete messages first (foreign key)
+  await supabase.from('messages').delete().in('conversation_id', emptyIds);
+  // Delete the conversations
+  const { error } = await supabase.from('conversations').delete().in('id', emptyIds);
+
+  if (error) {
+    console.error('Error deleting empty conversations:', error);
+    return 0;
+  }
+
+  // Clean localStorage
+  if (typeof window !== 'undefined') {
+    const meta = getConversationsMeta();
+    for (const id of emptyIds) {
+      delete meta[id];
+    }
+    localStorage.setItem(CONVERSATIONS_META_KEY, JSON.stringify(meta));
+  }
+
+  return emptyIds.length;
+}
+
 // localStorage helpers for conversation metadata
 const CONVERSATIONS_META_KEY = 'conversationsMeta';
 

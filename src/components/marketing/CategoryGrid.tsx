@@ -34,6 +34,7 @@ export default function CategoryGrid() {
             <Link
               key={cat.slug}
               href={`/chat?category=${cat.slug}`}
+              target="_blank"
               className="group bg-sand hover:bg-white rounded-xl p-5 text-center border border-transparent hover:border-coral/20 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-[1.03]"
             >
               <span className="text-3xl block mb-3">{cat.emoji}</span>
