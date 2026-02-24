@@ -12,6 +12,7 @@ import {
   updateConversationMetaLastMessage,
   deleteEmptyConversations,
 } from '@/lib/conversations';
+import { seedSampleConversations } from '@/lib/seed-conversations';
 import ConversationSidebar from './ConversationSidebar';
 import Chat from './Chat';
 
@@ -29,11 +30,20 @@ export default function ChatApp() {
       // Clean up empty conversations (only welcome message, no user interaction)
       await deleteEmptyConversations();
 
+      // Load conversations from Supabase
+      let dbConversations = await getAllConversations();
+
+      // If no conversations remain, seed sample ones
+      if (dbConversations.length === 0) {
+        const seeded = await seedSampleConversations();
+        if (seeded.length > 0) {
+          // Reload from DB after seeding
+          dbConversations = await getAllConversations();
+        }
+      }
+
       // Load metadata from localStorage
       const meta = getConversationsMeta();
-
-      // Load conversations from Supabase
-      const dbConversations = await getAllConversations();
 
       if (dbConversations.length > 0) {
         // Get last messages for all conversations
