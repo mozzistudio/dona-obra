@@ -61,6 +61,35 @@ body {
   animation: bounce 1s infinite;
 }
 
+/* Phone mockup chat animation */
+@keyframes msg-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-msg-enter {
+  animation: msg-enter 0.4s ease-out both;
+}
+
+@keyframes bounce-dot {
+  0%, 60%, 100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-4px);
+  }
+}
+
+.animate-bounce-dot {
+  animation: bounce-dot 1.2s ease-in-out infinite;
+}
+
 /* Scrollbar hide utility for carousels */
 .scrollbar-hide::-webkit-scrollbar {
   display: none;

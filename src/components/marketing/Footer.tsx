@@ -59,6 +59,7 @@ export default function Footer() {
                   <li key={link.href}>
                     <Link
                       href={link.href}
+                      {...(link.href.startsWith('/chat') ? { target: '_blank' } : {})}
                       className="text-white/70 hover:text-white text-sm transition-colors"
                     >
                       {link.label}

@@ -26,6 +26,7 @@ export default function CTASection() {
             </p>
             <Link
               href="/chat"
+              target="_blank"
               className="inline-flex items-center gap-2.5 bg-white hover:bg-cream text-coral font-semibold px-8 py-4 rounded-full text-base transition-all shadow-lg hover:shadow-xl active:scale-[0.98]"
             >
               <MessageCircle className="w-5 h-5" />
