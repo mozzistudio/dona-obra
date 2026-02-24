@@ -84,16 +84,50 @@ const MESSAGES: ChatMsg[] = [
     time: '3:28 p.m.',
     delay: 14000,
   },
+  {
+    id: 7,
+    type: 'user',
+    content: 'Quiero contactar a Roberto 👍',
+    time: '3:29 p.m.',
+    delay: 16500,
+  },
+  // typing at 18000, replaced at 20000
+  {
+    id: 8,
+    type: 'bot',
+    content: (
+      <>
+        <span className="block mt-1">
+          <span className="block bg-jungle/10 border border-jungle/20 rounded-lg px-2.5 py-2 space-y-1">
+            <span className="flex items-center gap-1.5">
+              <span className="text-[12px]">✅</span>
+              <span className="block text-[10px] text-jungle font-bold">¡Solicitud enviada!</span>
+            </span>
+            <span className="block text-[9px] text-charcoal/70 leading-snug">
+              Roberto M. recibirá tu solicitud y se pondrá en contacto contigo pronto.
+            </span>
+            <span className="flex items-center gap-1 mt-0.5">
+              <span className="text-[10px]">📱</span>
+              <span className="block text-[9px] text-jungle font-semibold">WhatsApp · Llamada</span>
+            </span>
+          </span>
+        </span>
+      </>
+    ),
+    time: '3:29 p.m.',
+    delay: 20000,
+  },
 ];
 
 /* Typing indicator appears before certain bot messages */
 const TYPING_SCHEDULE = [
-  { showAt: 3500, hideAt: 5000 },   // before msg 3
-  { showAt: 8500, hideAt: 10000 },   // before msg 5
-  { showAt: 12500, hideAt: 14000 },  // before msg 6
+  { showAt: 3500, hideAt: 5000 },    // before msg 3
+  { showAt: 8500, hideAt: 10000 },    // before msg 5
+  { showAt: 12500, hideAt: 14000 },   // before msg 6
+  { showAt: 18000, hideAt: 20000 },   // before msg 8
 ];
 
-const CYCLE_DURATION = 18000; // 18s total, then reset
+const CYCLE_DURATION = 25000; // 25s total, then reset
 
 /* ─── typing dots component ─── */
 
@@ -177,15 +211,17 @@ export default function AnimatedPhoneMockup() {
     return clearTimers;
   }, [startCycle, clearTimers]);
 
-  // Auto-scroll when messages change (RAF ensures DOM has painted)
+  // Auto-scroll when messages change (double RAF ensures DOM has painted after React commit)
   useEffect(() => {
     requestAnimationFrame(() => {
-      if (scrollRef.current) {
-        scrollRef.current.scrollTo({
-          top: scrollRef.current.scrollHeight,
-          behavior: 'smooth',
-        });
-      }
+      requestAnimationFrame(() => {
+        if (scrollRef.current) {
+          scrollRef.current.scrollTo({
+            top: scrollRef.current.scrollHeight,
+            behavior: 'smooth',
+          });
+        }
+      });
     });
   }, [visibleIds, showTyping]);
 
