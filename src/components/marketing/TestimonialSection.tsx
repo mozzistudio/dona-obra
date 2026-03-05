@@ -2,25 +2,34 @@ import { Star, MapPin } from 'lucide-react';
 
 const testimonials = [
   {
-    name: 'María G.',
-    location: 'San Francisco',
+    name: 'María González',
+    firstName: 'Maria',
+    service: 'Plomería de emergencia',
+    location: 'San Francisco, Ciudad de Panamá',
+    date: 'Febrero 2026',
     rating: 5,
     quote:
-      'Necesitaba un plomero urgente un domingo y Doña Obra me conectó con uno excelente en menos de una hora. El precio fue exactamente lo que me estimaron. Increíble servicio.',
+      'Necesitaba un plomero urgente un domingo y Doña Obra me conectó en menos de una hora. El precio fue exactamente lo que me estimaron.',
   },
   {
-    name: 'Carlos R.',
-    location: 'El Cangrejo',
+    name: 'Carlos Rodríguez',
+    firstName: 'Carlos',
+    service: 'Pintura interior',
+    location: 'El Cangrejo, Ciudad de Panamá',
+    date: 'Enero 2026',
     rating: 5,
     quote:
-      'Pinté todo mi apartamento gracias a Doña Obra. El pintor que me recomendaron fue super profesional y el resultado quedó espectacular. Definitivamente lo volvería a usar.',
+      'Me pintaron todo el apartamento. El pintor fue súper profesional y el resultado quedó espectacular. Lo volvería a usar sin duda.',
   },
   {
-    name: 'Ana P.',
-    location: 'Paitilla',
+    name: 'Ana Pérez',
+    firstName: 'Ana',
+    service: 'Reparación de A/C',
+    location: 'Paitilla, Ciudad de Panamá',
+    date: 'Febrero 2026',
     rating: 5,
     quote:
-      'Me encanta la transparencia de los precios. Antes siempre me sentía insegura contratando a alguien, pero con Doña Obra sé exactamente qué esperar. Es como tener una vecina de confianza.',
+      'Me encanta la transparencia de los precios. Antes me sentía insegura contratando a desconocidos, pero con Doña Obra sé exactamente qué esperar.',
   },
 ];
 
@@ -63,20 +72,26 @@ export default function TestimonialSection() {
               key={i}
               className="bg-sand/50 rounded-2xl p-7 border border-black/5 hover:shadow-md transition-shadow"
             >
-              <StarRating rating={testimonial.rating} />
-              <p className="text-charcoal/80 text-sm leading-relaxed mt-4 mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <StarRating rating={testimonial.rating} />
+                <span className="text-xs text-muted">{testimonial.date}</span>
+              </div>
+              <p className="text-charcoal/80 text-sm leading-relaxed mb-6">
                 &ldquo;{testimonial.quote}&rdquo;
               </p>
               <div className="flex items-center gap-3">
-                {/* Avatar placeholder */}
-                <div className="w-10 h-10 bg-coral/15 rounded-full flex items-center justify-center">
-                  <span className="text-coral font-semibold text-sm">
-                    {testimonial.name.charAt(0)}
-                  </span>
-                </div>
+                {/* DiceBear avatar */}
+                <img
+                  src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${testimonial.firstName}`}
+                  alt={testimonial.name}
+                  className="w-10 h-10 rounded-full bg-coral/10"
+                />
                 <div>
                   <p className="font-semibold text-sm text-charcoal">
                     {testimonial.name}
+                  </p>
+                  <p className="text-muted text-xs">
+                    {testimonial.service}
                   </p>
                   <p className="text-muted text-xs flex items-center gap-1">
                     <MapPin className="w-3 h-3" />

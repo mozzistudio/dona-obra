@@ -53,7 +53,13 @@ export default function Navbar() {
           </div>
 
           {/* Desktop CTA */}
-          <div className="hidden md:flex items-center">
+          <div className="hidden md:flex items-center gap-4">
+            <Link
+              href="/profesionales"
+              className="text-sm text-charcoal/60 hover:text-charcoal transition-colors"
+            >
+              ¿Eres contratista?
+            </Link>
             <Link
               href="/chat"
               target="_blank"
@@ -99,6 +105,13 @@ export default function Navbar() {
                   </Link>
                 );
               })}
+              <Link
+                href="/profesionales"
+                onClick={() => setMobileOpen(false)}
+                className="px-4 py-3 rounded-lg text-sm font-medium text-charcoal/60 hover:text-charcoal hover:bg-black/4 transition-colors"
+              >
+                ¿Eres contratista?
+              </Link>
               <Link
                 href="/chat"
                 target="_blank"
