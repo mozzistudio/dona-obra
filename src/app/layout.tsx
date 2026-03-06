@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import WhatsAppFloat from '@/components/WhatsAppFloat';
 import './globals.css';
 
 export const viewport: Viewport = {
@@ -52,7 +53,10 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="antialiased font-sans">{children}</body>
+      <body className="antialiased font-sans">
+        {children}
+        <WhatsAppFloat />
+      </body>
     </html>
   );
 }

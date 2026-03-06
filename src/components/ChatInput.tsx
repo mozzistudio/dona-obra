@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, ChangeEvent } from 'react';
-import { Send, Paperclip, X } from 'lucide-react';
+import { Send, Camera } from 'lucide-react';
 import ImagePreview from './ImagePreview';
 
 interface ChatInputProps {
@@ -51,10 +51,21 @@ export default function ChatInput({ onSend, disabled, initialMessage }: ChatInpu
     const files = e.target.files;
     if (!files) return;
 
-    const imagePromises = Array.from(files).map((file) => compressImage(file, 1024, 0.7));
+    const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+    const validFiles = Array.from(files).filter((file) => {
+      if (file.size > MAX_SIZE) {
+        alert(`${file.name} es muy grande. Máximo 5MB.`);
+        return false;
+      }
+      return true;
+    });
 
+    const imagePromises = validFiles.map((file) => compressImage(file, 1024, 0.7));
     const newImages = await Promise.all(imagePromises);
     setImages((prev) => [...prev, ...newImages]);
+
+    // Reset input so the same file can be re-selected
+    e.target.value = '';
   };
 
   const handleRemoveImage = (index: number) => {
@@ -92,14 +103,14 @@ export default function ChatInput({ onSend, disabled, initialMessage }: ChatInpu
           disabled={disabled}
           className="p-3 text-muted hover:bg-warm rounded-full transition-colors disabled:opacity-50"
         >
-          <Paperclip className="w-5 h-5" />
+          <Camera className="w-5 h-5" />
         </button>
 
         <input
           type="file"
           ref={fileInputRef}
           onChange={handleImageUpload}
-          accept="image/*"
+          accept="image/jpeg,image/png,image/webp"
           multiple
           className="hidden"
         />

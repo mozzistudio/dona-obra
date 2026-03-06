@@ -30,14 +30,13 @@ export default function Hero() {
 
             {/* Heading */}
             <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl text-charcoal leading-[1.1] tracking-tight mb-6">
-              Encuentra al mejor{' '}
-              <span className="text-coral">profesional</span> para tu hogar
+              ¿Tubería rota un domingo?{' '}
+              <span className="text-coral">Tu contratista llega hoy.</span>
             </h1>
 
             {/* Subtitle */}
             <p className="text-lg text-muted leading-relaxed mb-8 max-w-md">
-              Cuéntale a Doña Obra lo que necesitas y en segundos recibes una
-              estimación con los mejores profesionales verificados de Panamá.
+              Cuéntale a Doña Obra lo que necesitas — en 30 segundos recibes una estimación de precio y los mejores contratistas verificados de Panamá.
             </p>
 
             {/* Buttons */}
