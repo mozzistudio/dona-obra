@@ -1,11 +1,15 @@
+import { useTranslations } from 'next-intl';
+
 const stats = [
-  { icon: '⏱️', value: '8 min', label: 'Tiempo de respuesta promedio' },
-  { icon: '✅', value: '340+', label: 'Trabajos completados' },
-  { icon: '⭐', value: '4.8', label: 'Calificación promedio' },
-  { icon: '🗺️', value: '12', label: 'Corregimientos cubiertos' },
+  { icon: '⏱️', value: '8 min', labelKey: 'responseTime' },
+  { icon: '✅', value: '340+', labelKey: 'jobsCompleted' },
+  { icon: '⭐', value: '4.8', labelKey: 'avgRating' },
+  { icon: '🗺️', value: '12', labelKey: 'areasCovered' },
 ];
 
 export default function StatsBar() {
+  const t = useTranslations('stats');
+
   return (
     <section className="bg-white border-y border-black/6">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -16,7 +20,7 @@ export default function StatsBar() {
               <p className="font-display text-3xl sm:text-4xl text-coral mb-1">
                 {stat.value}
               </p>
-              <p className="text-muted text-sm font-medium">{stat.label}</p>
+              <p className="text-muted text-sm font-medium">{t(stat.labelKey)}</p>
             </div>
           ))}
         </div>

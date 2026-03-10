@@ -1,30 +1,33 @@
-import Link from 'next/link';
-
-const footerSections = [
-  {
-    title: 'Servicios',
-    links: [
-      { label: 'Ver servicios', href: '/servicios' },
-      { label: 'Consultar ahora', href: '/chat' },
-    ],
-  },
-  {
-    title: 'Empresa',
-    links: [
-      { label: 'Sobre Nosotros', href: '/sobre-nosotros' },
-      { label: 'Cómo Funciona', href: '/como-funciona' },
-    ],
-  },
-  {
-    title: 'Legal',
-    links: [
-      { label: 'Privacidad', href: '/privacidad' },
-      { label: 'Términos', href: '/terminos' },
-    ],
-  },
-];
+import { Link } from '@/i18n/navigation';
+import { useTranslations } from 'next-intl';
 
 export default function Footer() {
+  const t = useTranslations('footer');
+
+  const footerSections = [
+    {
+      titleKey: 'servicesTitle',
+      links: [
+        { labelKey: 'viewServices', href: '/servicios' },
+        { labelKey: 'consultNow', href: '/chat' },
+      ],
+    },
+    {
+      titleKey: 'companyTitle',
+      links: [
+        { labelKey: 'aboutUs', href: '/sobre-nosotros' },
+        { labelKey: 'howItWorks', href: '/como-funciona' },
+      ],
+    },
+    {
+      titleKey: 'legalTitle',
+      links: [
+        { labelKey: 'privacy', href: '/privacidad' },
+        { labelKey: 'terms', href: '/terminos' },
+      ],
+    },
+  ];
+
   return (
     <footer className="bg-charcoal text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -42,17 +45,15 @@ export default function Footer() {
               </span>
             </Link>
             <p className="text-white/60 text-sm leading-relaxed">
-              Tu vecina de confianza para servicios del hogar en Panamá.
-              Conectamos a las familias panameñas con los mejores profesionales
-              verificados.
+              {t('brandDescription')}
             </p>
           </div>
 
           {/* Link columns */}
           {footerSections.map((section) => (
-            <div key={section.title}>
+            <div key={section.titleKey}>
               <h3 className="font-semibold text-sm uppercase tracking-wider text-white/40 mb-4">
-                {section.title}
+                {t(section.titleKey)}
               </h3>
               <ul className="space-y-3">
                 {section.links.map((link) => (
@@ -62,7 +63,7 @@ export default function Footer() {
                       {...(link.href.startsWith('/chat') ? { target: '_blank' } : {})}
                       className="text-white/70 hover:text-white text-sm transition-colors"
                     >
-                      {link.label}
+                      {t(link.labelKey)}
                     </Link>
                   </li>
                 ))}
@@ -74,7 +75,7 @@ export default function Footer() {
         {/* Bottom bar */}
         <div className="mt-14 pt-8 border-t border-white/10">
           <p className="text-white/40 text-sm text-center">
-            &copy; {new Date().getFullYear()} Doña Obra. Todos los derechos reservados. Panamá 🇵🇦
+            &copy; {new Date().getFullYear()} Doña Obra. {t('copyright')}
           </p>
         </div>
       </div>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useChat } from 'ai/react';
+import { useTranslations } from 'next-intl';
 import { ChatMessage, Brief, Estimation, ChatBrief, Provider } from '@/lib/types';
 import MessageBubble from './MessageBubble';
 import ChatInput from './ChatInput';
@@ -9,11 +10,7 @@ import TypingIndicator from './TypingIndicator';
 import { createConversation, saveMessage, getConversationMessages } from '@/lib/conversations';
 import { validateAndFetchProviders } from '@/lib/providers';
 import { Menu, Search, MoreVertical } from 'lucide-react';
-import Link from 'next/link';
-
-const WELCOME_MESSAGE = `¡Ey, dimelo! 👷‍♀️ Soy Doña Obra, tu vecina de confianza pa' todo lo que es reparaciones y servicios del hogar. Yo conozco a todos los buenos maestros de la ciudad 💪
-
-Cuéntame qué necesitas — mándame texto, fotos, lo que sea — y yo te digo cuánto te va a salir y quién te lo puede resolver. ¡Vamos al grano! 🔧`;
+import { Link } from '@/i18n/navigation';
 
 function parseBrief(content: string): { textPart: string; chatBrief: ChatBrief } | null {
   const delimiterIndex = content.indexOf('%%%BRIEF%%%');
@@ -53,6 +50,10 @@ export default function Chat({
   userName,
   userAvatar,
 }: ChatProps) {
+  const t = useTranslations('chat');
+  const tCommon = useTranslations('common');
+  const tProgress = useTranslations('progress');
+
   const [conversationId, setConversationId] = useState<string | null>(externalConversationId);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [lastBrief, setLastBrief] = useState<Brief | null>(null);
@@ -63,6 +64,8 @@ export default function Chat({
   const initializedRef = useRef(false);
   const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
   const relanceFiredRef = useRef(false);
+
+  const welcomeMessage = t('welcomeMessage');
 
   const cancelInactivityTimer = useCallback(() => {
     if (inactivityTimerRef.current) {
@@ -80,13 +83,13 @@ export default function Chat({
         const relanceMsg: ChatMessage = {
           id: `relance-${Date.now()}`,
           role: 'assistant',
-          content: '¿Sigues ahí? Cuéntame más para poder ayudarte mejor 😊',
+          content: t('relanceMessage'),
           timestamp: new Date(),
         };
         setChatMessages((prev) => [...prev, relanceMsg]);
       }
     }, 120000);
-  }, [cancelInactivityTimer, briefReceived]);
+  }, [cancelInactivityTimer, briefReceived, t]);
 
   const { append, isLoading } = useChat({
     api: '/api/chat',
@@ -124,14 +127,14 @@ export default function Chat({
           const providerMessage: ChatMessage = {
             id: (Date.now() + 1).toString(),
             role: 'assistant',
-            content: `Te encontré ${providers.length} profesionales de confianza 💪`,
+            content: t('foundProviders', { count: providers.length }),
             providers,
             brief: chatBrief.brief,
             estimation: chatBrief.estimation,
             timestamp: new Date(),
           };
           setChatMessages((prev) => [...prev, providerMessage]);
-          onMessageUpdate?.(conversationId!, `Te encontré ${providers.length} profesionales de confianza`);
+          onMessageUpdate?.(conversationId!, t('foundProviders', { count: providers.length }));
         }
       } else {
         addAssistantMessage(message.content);
@@ -191,7 +194,7 @@ export default function Chat({
                 chatMsgs.push({
                   id: m.id + '-providers',
                   role: 'assistant',
-                  content: `Te encontré ${providers.length} profesionales de confianza 💪`,
+                  content: t('foundProviders', { count: providers.length }),
                   providers,
                   brief: chatBrief.brief,
                   estimation: chatBrief.estimation,
@@ -256,14 +259,14 @@ export default function Chat({
     const welcomeMsg: ChatMessage = {
       id: 'welcome',
       role: 'assistant',
-      content: WELCOME_MESSAGE,
+      content: welcomeMessage,
       timestamp: new Date(),
     };
     setChatMessages([welcomeMsg]);
     if (conversationId) {
-      saveMessage(conversationId, 'assistant', WELCOME_MESSAGE);
+      saveMessage(conversationId, 'assistant', welcomeMessage);
     }
-  }, [conversationId]);
+  }, [conversationId, welcomeMessage]);
 
   const handleSendMessage = async (text: string, images: string[]) => {
     if (!conversationId) return;
@@ -308,11 +311,11 @@ export default function Chat({
     const confirmMsg: ChatMessage = {
       id: `wa-confirm-${Date.now()}`,
       role: 'assistant',
-      content: `✅ Solicitud enviada a ${providerName}. Te contactarán por WhatsApp pronto.`,
+      content: t('requestSent', { name: providerName }),
       timestamp: new Date(),
     };
     setChatMessages((prev) => [...prev, confirmMsg]);
-  }, []);
+  }, [t]);
 
   return (
     <div className="flex flex-col flex-1 h-full min-w-0">
@@ -341,13 +344,13 @@ export default function Chat({
         )}
         <div className="flex-1 min-w-0">
           <h1 className="font-normal text-wa-text text-[16px] leading-tight">{userName || 'Doña Obra'}</h1>
-          <p className="text-[13px] text-wa-text-secondary leading-tight">en línea</p>
+          <p className="text-[13px] text-wa-text-secondary leading-tight">{tCommon('online')}</p>
         </div>
         <div className="flex items-center gap-2">
           <Link
             href="/"
             className="p-2 hover:bg-wa-hover rounded-full transition-colors"
-            title="Ir al inicio"
+            title={tCommon('goToHome')}
           >
             <Search className="w-5 h-5 text-wa-text-secondary" />
           </Link>
@@ -357,7 +360,7 @@ export default function Chat({
               window.location.reload();
             }}
             className="p-2 hover:bg-wa-hover rounded-full transition-colors"
-            title="Más opciones"
+            title={tCommon('moreOptions')}
           >
             <MoreVertical className="w-5 h-5 text-wa-text-secondary" />
           </button>
@@ -402,7 +405,7 @@ export default function Chat({
       <ChatInput
         onSend={handleSendMessage}
         disabled={isLoading}
-        initialMessage={initialCategory ? `Necesito ayuda con ${initialCategory}` : undefined}
+        initialMessage={initialCategory ? t('needHelpWith', { category: initialCategory }) : undefined}
       />
     </div>
   );
@@ -410,29 +413,31 @@ export default function Chat({
 
 // Welcome Screen Component
 function WelcomeScreen({ onStart }: { onStart: () => void }) {
+  const t = useTranslations('chat');
+
   return (
     <div className="flex flex-col items-center justify-center h-full px-6 text-center">
       <div className="bg-white rounded-2xl shadow-sm p-8 max-w-md">
         <img src="/dona-obra-logo.png" alt="Doña Obra" className="w-20 h-20 rounded-full mx-auto mb-6" />
         <h2 className="text-2xl font-semibold text-wa-text mb-2">
-          ¡Hola! Soy Doña Obra 👷‍♀️
+          {t('welcomeTitle')}
         </h2>
         <p className="text-wa-text-secondary text-[15px] mb-6">
-          Tu vecina de confianza para servicios del hogar en Panamá
+          {t('welcomeSubtitle')}
         </p>
 
         <div className="flex flex-col items-start gap-4 mb-6 text-left">
           <div className="flex items-center gap-3">
             <span className="text-xl">💬</span>
-            <span className="text-[14px] text-wa-text">Describe tu problema</span>
+            <span className="text-[14px] text-wa-text">{t('welcomeStep1')}</span>
           </div>
           <div className="flex items-center gap-3">
             <span className="text-xl">💡</span>
-            <span className="text-[14px] text-wa-text">Estimación en 30 seg</span>
+            <span className="text-[14px] text-wa-text">{t('welcomeStep2')}</span>
           </div>
           <div className="flex items-center gap-3">
             <span className="text-xl">👷</span>
-            <span className="text-[14px] text-wa-text">Elige tu contratista</span>
+            <span className="text-[14px] text-wa-text">{t('welcomeStep3')}</span>
           </div>
         </div>
 
@@ -440,9 +445,9 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
           onClick={onStart}
           className="w-full bg-wa-green hover:bg-wa-green-dark text-white py-3 rounded-lg text-[15px] font-medium transition-colors"
         >
-          Obtener cotización
+          {t('getQuote')}
         </button>
-        <p className="text-xs text-wa-text-secondary mt-3">Gratis · Sin compromiso · Respuesta instantánea</p>
+        <p className="text-xs text-wa-text-secondary mt-3">{t('freeInstant')}</p>
       </div>
     </div>
   );
@@ -458,16 +463,6 @@ interface CollectedFields {
   budget_range: boolean;
   contact_info: boolean;
 }
-
-const fieldConfig = [
-  { key: 'problem_description' as const, icon: '🔧', label: 'Problema' },
-  { key: 'location' as const, icon: '📍', label: 'Ubicación' },
-  { key: 'property_type' as const, icon: '🏠', label: 'Propiedad' },
-  { key: 'urgency' as const, icon: '⏰', label: 'Urgencia' },
-  { key: 'availability' as const, icon: '🕐', label: 'Horario' },
-  { key: 'budget_range' as const, icon: '💰', label: 'Presupuesto' },
-  { key: 'contact_info' as const, icon: '📞', label: 'Contacto' },
-];
 
 function detectCollectedFields(messages: ChatMessage[]): CollectedFields {
   const fields: CollectedFields = {
@@ -528,7 +523,18 @@ function detectCollectedFields(messages: ChatMessage[]): CollectedFields {
 }
 
 function CollectionProgress({ messages }: { messages: ChatMessage[] }) {
+  const t = useTranslations('progress');
   const fields = detectCollectedFields(messages);
+
+  const fieldConfig = [
+    { key: 'problem_description' as const, icon: '🔧', label: t('problem') },
+    { key: 'location' as const, icon: '📍', label: t('location') },
+    { key: 'property_type' as const, icon: '🏠', label: t('property') },
+    { key: 'urgency' as const, icon: '⏰', label: t('urgency') },
+    { key: 'availability' as const, icon: '🕐', label: t('schedule') },
+    { key: 'budget_range' as const, icon: '💰', label: t('budget') },
+    { key: 'contact_info' as const, icon: '📞', label: t('contact') },
+  ];
 
   return (
     <div className="bg-wa-panel-header border-b border-wa-border px-3 py-2 shrink-0 overflow-x-auto">

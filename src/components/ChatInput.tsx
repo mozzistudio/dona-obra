@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, ChangeEvent } from 'react';
+import { useTranslations } from 'next-intl';
 import { Send, Paperclip, Smile, Mic } from 'lucide-react';
 import ImagePreview from './ImagePreview';
 
@@ -11,6 +12,7 @@ interface ChatInputProps {
 }
 
 export default function ChatInput({ onSend, disabled, initialMessage }: ChatInputProps) {
+  const t = useTranslations('chat');
   const [message, setMessage] = useState(initialMessage || '');
   const [images, setImages] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -54,7 +56,7 @@ export default function ChatInput({ onSend, disabled, initialMessage }: ChatInpu
     const MAX_SIZE = 5 * 1024 * 1024;
     const validFiles = Array.from(files).filter((file) => {
       if (file.size > MAX_SIZE) {
-        alert(`${file.name} es muy grande. Máximo 5MB.`);
+        alert(`${file.name} ${t('fileTooLarge')}`);
         return false;
       }
       return true;
@@ -129,7 +131,7 @@ export default function ChatInput({ onSend, disabled, initialMessage }: ChatInpu
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             disabled={disabled}
-            placeholder="Escribe un mensaje"
+            placeholder={t('writeMessage')}
             className="w-full px-4 py-[9px] bg-white border border-wa-border rounded-lg resize-none focus:outline-none disabled:opacity-50 text-[15px] text-wa-text placeholder:text-wa-text-secondary transition-colors"
             rows={1}
             style={{

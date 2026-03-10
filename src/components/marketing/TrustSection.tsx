@@ -1,38 +1,37 @@
 import { Shield, DollarSign, Heart } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 const values = [
   {
     icon: Shield,
-    title: 'Profesionales verificados',
-    description:
-      'Cada profesional pasa por un proceso de verificación riguroso. Revisamos referencias, experiencia y calidad de trabajo antes de recomendarlo.',
+    titleKey: 'value1Title',
+    descriptionKey: 'value1Description',
   },
   {
     icon: DollarSign,
-    title: 'Precios transparentes',
-    description:
-      'Recibes una estimación clara antes de contratar. Sin sorpresas, sin costos ocultos. El precio que ves es el precio que pagas.',
+    titleKey: 'value2Title',
+    descriptionKey: 'value2Description',
   },
   {
     icon: Heart,
-    title: 'Recomendación personal',
-    description:
-      'Como una buena vecina, Doña Obra te recomienda al profesional ideal según tu necesidad específica, presupuesto y ubicación.',
+    titleKey: 'value3Title',
+    descriptionKey: 'value3Description',
   },
 ];
 
 export default function TrustSection() {
+  const t = useTranslations('trust');
+
   return (
     <section className="py-20 bg-cream">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section header */}
         <div className="text-center mb-14">
           <h2 className="font-display text-3xl sm:text-4xl text-charcoal mb-4">
-            ¿Por qué Doña Obra?
+            {t('title')}
           </h2>
           <p className="text-muted max-w-lg mx-auto">
-            Somos más que una plataforma. Somos tu vecina de confianza que conoce
-            a los mejores profesionales.
+            {t('subtitle')}
           </p>
         </div>
 
@@ -46,10 +45,10 @@ export default function TrustSection() {
                   <Icon className="w-8 h-8 text-coral" />
                 </div>
                 <h3 className="font-semibold text-lg text-charcoal mb-3">
-                  {item.title}
+                  {t(item.titleKey)}
                 </h3>
                 <p className="text-muted text-sm leading-relaxed max-w-xs mx-auto">
-                  {item.description}
+                  {t(item.descriptionKey)}
                 </p>
               </div>
             );

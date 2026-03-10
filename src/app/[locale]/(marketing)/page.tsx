@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import Hero from '@/components/marketing/Hero';
 import StatsBar from '@/components/marketing/StatsBar';
 import HowItWorks from '@/components/marketing/HowItWorks';
@@ -8,20 +9,34 @@ import TestimonialSection from '@/components/marketing/TestimonialSection';
 import FAQSection from '@/components/marketing/FAQSection';
 import CTASection from '@/components/marketing/CTASection';
 
-export const metadata: Metadata = {
-  title: 'Doña Obra - Servicios del Hogar en Panamá',
-  description:
-    'Encuentra plomeros, electricistas, pintores y más profesionales verificados en Panamá. Estimaciones al instante con Doña Obra, tu vecina de confianza.',
-  openGraph: {
-    title: 'Doña Obra - Tu vecina de confianza',
-    description:
-      'Conecta con profesionales verificados en Panamá. Estimaciones al instante, precios justos.',
-    locale: 'es_PA',
-    type: 'website',
-  },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'metadata' });
 
-export default function HomePage() {
+  return {
+    title: t('homeTitle'),
+    description: t('homeDescription'),
+    openGraph: {
+      title: t('homeOgTitle'),
+      description: t('homeOgDescription'),
+      locale: locale === 'es' ? 'es_PA' : locale,
+      type: 'website',
+    },
+  };
+}
+
+export default async function HomePage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
   return (
     <>
       <Hero />

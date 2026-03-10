@@ -1,12 +1,14 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { usePathname } from '@/i18n/navigation';
 
 export default function WhatsAppFloat() {
+  const t = useTranslations('whatsapp');
   const pathname = usePathname();
 
   // Hide on chat page
-  if (pathname === '/chat') return null;
+  if (pathname.includes('/chat')) return null;
 
   const phone = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '507XXXXXXXXX';
 
@@ -15,7 +17,7 @@ export default function WhatsAppFloat() {
       href={`https://wa.me/${phone}`}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label="¿Preguntas? Chatea con nosotros"
+      aria-label={t('ariaLabel')}
       className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-[#25D366] rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow animate-pulse"
     >
       <svg

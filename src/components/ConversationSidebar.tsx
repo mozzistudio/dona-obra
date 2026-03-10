@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations, useLocale } from 'next-intl';
 import { ConversationMeta } from '@/lib/types';
 import { MessageSquarePlus, Search, X } from 'lucide-react';
 import { useState } from 'react';
@@ -13,27 +14,12 @@ interface ConversationSidebarProps {
   onToggle: () => void;
 }
 
-function formatTime(dateStr: string): string {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffDays === 0) {
-    return date.toLocaleTimeString('es-PA', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  }
-  if (diffDays === 1) return 'Ayer';
-  if (diffDays < 7) {
-    return date.toLocaleDateString('es-PA', { weekday: 'short' });
-  }
-  return date.toLocaleDateString('es-PA', {
-    day: '2-digit',
-    month: '2-digit',
-  });
-}
+const localeMap: Record<string, string> = {
+  es: 'es-PA',
+  en: 'en-US',
+  fr: 'fr-FR',
+  de: 'de-DE',
+};
 
 function truncate(text: string, maxLen: number): string {
   if (text.length <= maxLen) return text;
@@ -48,7 +34,34 @@ export default function ConversationSidebar({
   isOpen,
   onToggle,
 }: ConversationSidebarProps) {
+  const t = useTranslations('sidebar');
+  const tCommon = useTranslations('common');
+  const locale = useLocale();
   const [searchQuery, setSearchQuery] = useState('');
+
+  const dateLocale = localeMap[locale] || 'es-PA';
+
+  function formatTime(dateStr: string): string {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) {
+      return date.toLocaleTimeString(dateLocale, {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    }
+    if (diffDays === 1) return tCommon('yesterday');
+    if (diffDays < 7) {
+      return date.toLocaleDateString(dateLocale, { weekday: 'short' });
+    }
+    return date.toLocaleDateString(dateLocale, {
+      day: '2-digit',
+      month: '2-digit',
+    });
+  }
 
   const filtered = searchQuery
     ? conversations.filter(
@@ -82,12 +95,12 @@ export default function ConversationSidebar({
       >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 bg-wa-panel-header shrink-0">
-          <h2 className="font-bold text-wa-text text-xl">Chats</h2>
+          <h2 className="font-bold text-wa-text text-xl">{t('chats')}</h2>
           <div className="flex items-center gap-1">
             <button
               onClick={onNewConversation}
               className="p-2 hover:bg-wa-hover rounded-full transition-colors"
-              title="Nueva conversación"
+              title={t('newConversation')}
             >
               <MessageSquarePlus className="w-5 h-5 text-wa-text-secondary" />
             </button>
@@ -108,7 +121,7 @@ export default function ConversationSidebar({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar o empezar un nuevo chat"
+              placeholder={t('searchPlaceholder')}
               className="flex-1 bg-transparent text-sm text-wa-text placeholder:text-wa-text-secondary outline-none py-1"
             />
           </div>
@@ -118,7 +131,7 @@ export default function ConversationSidebar({
         <div className="flex-1 overflow-y-auto">
           {filtered.length === 0 && (
             <div className="p-6 text-center text-wa-text-secondary text-sm">
-              No hay conversaciones
+              {t('noConversations')}
             </div>
           )}
 

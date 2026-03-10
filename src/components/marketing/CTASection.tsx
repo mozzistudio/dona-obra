@@ -1,7 +1,11 @@
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { MessageCircle } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export default function CTASection() {
+  const t = useTranslations('cta');
+  const tc = useTranslations('common');
+
   return (
     <section className="py-20 bg-cream">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -18,11 +22,10 @@ export default function CTASection() {
 
           <div className="relative">
             <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl text-white mb-4 leading-tight">
-              ¿Listo para encontrar al mejor profesional?
+              {t('title')}
             </h2>
             <p className="text-white/85 text-lg max-w-lg mx-auto mb-8">
-              Cuéntale a Doña Obra lo que necesitas y recibe tu estimación en
-              segundos. Es gratis y sin compromiso.
+              {t('subtitle')}
             </p>
             <Link
               href="/chat"
@@ -30,7 +33,7 @@ export default function CTASection() {
               className="inline-flex items-center gap-2.5 bg-white hover:bg-cream text-coral font-semibold px-8 py-4 rounded-full text-base transition-all shadow-lg hover:shadow-xl active:scale-[0.98]"
             >
               <MessageCircle className="w-5 h-5" />
-              Consultar ahora
+              {tc('consultNow')}
             </Link>
           </div>
         </div>

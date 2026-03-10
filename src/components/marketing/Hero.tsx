@@ -1,8 +1,12 @@
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { MessageCircle } from 'lucide-react';
 import AnimatedPhoneMockup from './AnimatedPhoneMockup';
+import { useTranslations } from 'next-intl';
 
 export default function Hero() {
+  const t = useTranslations('hero');
+  const tc = useTranslations('common');
+
   return (
     <section
       className="relative overflow-hidden"
@@ -24,19 +28,19 @@ export default function Hero() {
             <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm border border-coral/15 rounded-full px-4 py-2 mb-6 shadow-sm">
               <span className="text-sm">&#x1F477;&#x200D;&#x2640;&#xFE0F;</span>
               <span className="text-sm font-medium text-charcoal/80">
-                Tu vecina de confianza en Panamá
+                {t('badge')}
               </span>
             </div>
 
             {/* Heading */}
             <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl text-charcoal leading-[1.1] tracking-tight mb-6">
-              ¿Tubería rota un domingo?{' '}
-              <span className="text-coral">Tu contratista llega hoy.</span>
+              {t('headingMain')}{' '}
+              <span className="text-coral">{t('headingHighlight')}</span>
             </h1>
 
             {/* Subtitle */}
             <p className="text-lg text-muted leading-relaxed mb-8 max-w-md">
-              Cuéntale a Doña Obra lo que necesitas — en 30 segundos recibes una estimación de precio y los mejores contratistas verificados de Panamá.
+              {t('subtitle')}
             </p>
 
             {/* Buttons */}
@@ -47,13 +51,13 @@ export default function Hero() {
                 className="inline-flex items-center justify-center gap-2 bg-coral hover:bg-coral-dark text-white px-7 py-3.5 rounded-full text-base font-semibold transition-all shadow-lg shadow-coral/25 hover:shadow-xl hover:shadow-coral/30 active:scale-[0.98]"
               >
                 <MessageCircle className="w-5 h-5" />
-                Consultar ahora
+                {tc('consultNow')}
               </Link>
               <Link
                 href="/servicios"
                 className="inline-flex items-center justify-center gap-2 bg-white hover:bg-sand text-charcoal px-7 py-3.5 rounded-full text-base font-semibold transition-all border border-black/8 shadow-sm hover:shadow-md active:scale-[0.98]"
               >
-                Ver servicios
+                {tc('viewServices')}
               </Link>
             </div>
           </div>

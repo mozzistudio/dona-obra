@@ -1,20 +1,23 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { Link, usePathname } from '@/i18n/navigation';
 import { MessageCircle, Menu, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
-const navLinks = [
-  { href: '/', label: 'Inicio' },
-  { href: '/servicios', label: 'Servicios' },
-  { href: '/como-funciona', label: 'Cómo Funciona' },
-  { href: '/sobre-nosotros', label: 'Sobre Nosotros' },
-];
+const navLinkKeys = [
+  { href: '/', labelKey: 'home' },
+  { href: '/servicios', labelKey: 'services' },
+  { href: '/como-funciona', labelKey: 'howItWorks' },
+  { href: '/sobre-nosotros', labelKey: 'aboutUs' },
+] as const;
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
+  const t = useTranslations('nav');
+  const tc = useTranslations('common');
 
   return (
     <header className="sticky top-0 z-50 bg-cream/92 backdrop-blur-xl border-b border-black/6 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
@@ -34,7 +37,7 @@ export default function Navbar() {
 
           {/* Desktop nav links */}
           <div className="hidden md:flex items-center gap-1">
-            {navLinks.map((link) => {
+            {navLinkKeys.map((link) => {
               const isActive = pathname === link.href;
               return (
                 <Link
@@ -46,7 +49,7 @@ export default function Navbar() {
                       : 'text-charcoal/70 hover:text-charcoal hover:bg-black/4'
                   }`}
                 >
-                  {link.label}
+                  {t(link.labelKey)}
                 </Link>
               );
             })}
@@ -54,11 +57,12 @@ export default function Navbar() {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-4">
+            <LanguageSwitcher />
             <Link
               href="/profesionales"
               className="text-sm text-charcoal/60 hover:text-charcoal transition-colors"
             >
-              ¿Eres contratista?
+              {t('areYouContractor')}
             </Link>
             <Link
               href="/chat"
@@ -66,7 +70,7 @@ export default function Navbar() {
               className="inline-flex items-center gap-2 bg-coral hover:bg-coral-dark text-white px-5 py-2.5 rounded-full text-sm font-semibold transition-all shadow-sm hover:shadow-md active:scale-[0.98]"
             >
               <MessageCircle className="w-4 h-4" />
-              Consultar
+              {tc('consult')}
             </Link>
           </div>
 
@@ -74,7 +78,7 @@ export default function Navbar() {
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
             className="md:hidden p-2 rounded-lg text-charcoal/70 hover:bg-black/5 transition-colors"
-            aria-label={mobileOpen ? 'Cerrar menú' : 'Abrir menú'}
+            aria-label={mobileOpen ? t('closeMenu') : t('openMenu')}
           >
             {mobileOpen ? (
               <X className="w-5 h-5" />
@@ -88,7 +92,7 @@ export default function Navbar() {
         {mobileOpen && (
           <div className="md:hidden pb-4 pt-2 border-t border-black/6">
             <div className="flex flex-col gap-1">
-              {navLinks.map((link) => {
+              {navLinkKeys.map((link) => {
                 const isActive = pathname === link.href;
                 return (
                   <Link
@@ -101,7 +105,7 @@ export default function Navbar() {
                         : 'text-charcoal/70 hover:text-charcoal hover:bg-black/4'
                     }`}
                   >
-                    {link.label}
+                    {t(link.labelKey)}
                   </Link>
                 );
               })}
@@ -110,7 +114,7 @@ export default function Navbar() {
                 onClick={() => setMobileOpen(false)}
                 className="px-4 py-3 rounded-lg text-sm font-medium text-charcoal/60 hover:text-charcoal hover:bg-black/4 transition-colors"
               >
-                ¿Eres contratista?
+                {t('areYouContractor')}
               </Link>
               <Link
                 href="/chat"
@@ -119,8 +123,11 @@ export default function Navbar() {
                 className="inline-flex items-center justify-center gap-2 bg-coral hover:bg-coral-dark text-white px-5 py-3 rounded-full text-sm font-semibold transition-all mt-2"
               >
                 <MessageCircle className="w-4 h-4" />
-                Consultar
+                {tc('consult')}
               </Link>
+              <div className="mt-2 px-4">
+                <LanguageSwitcher />
+              </div>
             </div>
           </div>
         )}

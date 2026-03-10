@@ -1,11 +1,13 @@
 'use client';
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { Link, usePathname } from '@/i18n/navigation';
+import { useTranslations } from 'next-intl';
 import { MessageCircle } from 'lucide-react';
 
 export default function Navbar() {
   const pathname = usePathname();
+  const tNav = useTranslations('nav');
+  const tCommon = useTranslations('common');
   const isChat = pathname === '/chat';
 
   return (
@@ -27,7 +29,7 @@ export default function Navbar() {
               pathname === '/' ? 'text-coral' : 'text-muted hover:text-charcoal'
             }`}
           >
-            Inicio
+            {tNav('home')}
           </Link>
           <Link
             href="/chat"
@@ -38,7 +40,7 @@ export default function Navbar() {
             }`}
           >
             <MessageCircle className="w-4 h-4" />
-            Consultar
+            {tCommon('consult')}
           </Link>
         </div>
       </div>

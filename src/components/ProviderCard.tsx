@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import { Provider, Brief, Estimation } from '@/lib/types';
 import { Star, MapPin, DollarSign } from 'lucide-react';
 
@@ -35,6 +36,8 @@ _Enviado por Doña Obra 🏡_`;
 }
 
 export default function ProviderCard({ provider, isTopPick, brief, estimation, onWhatsAppSent }: ProviderCardProps) {
+  const t = useTranslations('provider');
+
   const handleSolicitar = () => {
     if (!brief || !estimation) return;
 
@@ -54,7 +57,7 @@ export default function ProviderCard({ provider, isTopPick, brief, estimation, o
     }`}>
       {isTopPick && (
         <div className="bg-gradient-to-r from-coral to-coral-dark text-white text-center py-1 text-xs font-bold">
-          ⭐ Top Pick de Doña Obra
+          {t('topPick')}
         </div>
       )}
 
@@ -98,7 +101,7 @@ export default function ProviderCard({ provider, isTopPick, brief, estimation, o
           <div className="flex items-center gap-1.5 text-sm">
             <DollarSign className="w-3.5 h-3.5 text-jungle" />
             <span className="font-semibold text-jungle">
-              Desde ${provider.price_min}
+              {t('from')} ${provider.price_min}
             </span>
           </div>
         )}
@@ -109,7 +112,7 @@ export default function ProviderCard({ provider, isTopPick, brief, estimation, o
           disabled={!brief || !estimation}
           className="w-full px-3 py-2 bg-[#25D366] text-white rounded-lg hover:bg-[#1da851] transition-colors font-medium text-sm flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          📲 Solicitar
+          {t('request')}
         </button>
       </div>
     </div>

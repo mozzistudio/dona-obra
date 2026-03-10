@@ -1,20 +1,21 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { supabase } from '@/lib/supabase';
 
-const categories = [
-  'Plomería',
-  'Electricidad',
-  'Pintura',
-  'Limpieza',
-  'Aire Acondicionado',
-  'Cerrajería',
-  'Jardinería',
-  'Albañilería',
-  'Mudanzas',
-  'Electrodomésticos',
-];
+const categoryKeys = [
+  'plumbing',
+  'electrical',
+  'painting',
+  'cleaning',
+  'ac',
+  'locksmith',
+  'gardening',
+  'masonry',
+  'moving',
+  'appliances',
+] as const;
 
 const zones = [
   'Bella Vista',
@@ -39,35 +40,27 @@ const zones = [
   'La Chorrera',
 ];
 
-const experienceOptions = [
-  { value: '', label: 'Prefiero no decir' },
-  { value: '1', label: 'Menos de 1 año' },
-  { value: '3', label: '1-3 años' },
-  { value: '5', label: '3-5 años' },
-  { value: '10', label: '5-10 años' },
-  { value: '15', label: 'Más de 10 años' },
+const experienceKeys = [
+  { value: '', labelKey: 'preferNotToSay' as const },
+  { value: '1', labelKey: 'lessThan1Year' as const },
+  { value: '3', labelKey: 'years1to3' as const },
+  { value: '5', labelKey: 'years3to5' as const },
+  { value: '10', labelKey: 'years5to10' as const },
+  { value: '15', labelKey: 'moreThan10Years' as const },
 ];
 
-const faqs = [
-  {
-    q: '¿Cuánto cobra Doña Obra?',
-    a: 'Por ahora es completamente gratis.',
-  },
-  {
-    q: '¿Cómo recibo solicitudes de trabajo?',
-    a: 'Directamente en tu WhatsApp con todos los detalles — nombre del cliente, ubicación, presupuesto y fotos.',
-  },
-  {
-    q: '¿Puedo elegir qué trabajos aceptar?',
-    a: 'Sí. Tú decides cuándo y dónde trabajas.',
-  },
-  {
-    q: '¿Cómo me verifico?',
-    a: 'Después de registrarte, nuestro equipo te contacta para verificar tu experiencia.',
-  },
+const faqKeys = [
+  { qKey: 'faqQ1' as const, aKey: 'faqA1' as const },
+  { qKey: 'faqQ2' as const, aKey: 'faqA2' as const },
+  { qKey: 'faqQ3' as const, aKey: 'faqA3' as const },
+  { qKey: 'faqQ4' as const, aKey: 'faqA4' as const },
 ];
 
 export default function ProfesionalesPage() {
+  const t = useTranslations('contractors');
+  const tc = useTranslations('categories');
+  const tCommon = useTranslations('common');
+
   const [formData, setFormData] = useState({
     name: '',
     specialty: '',
@@ -93,7 +86,7 @@ export default function ProfesionalesPage() {
     setError('');
 
     if (!formData.name || !formData.specialty || !formData.whatsapp || formData.zones.length === 0) {
-      setError('Por favor completa todos los campos requeridos.');
+      setError(t('requiredFieldsError'));
       return;
     }
 
@@ -112,7 +105,7 @@ export default function ProfesionalesPage() {
     setSubmitting(false);
 
     if (dbError) {
-      setError('Hubo un error. Por favor intenta de nuevo.');
+      setError(t('genericError'));
       console.error('Supabase error:', dbError);
       return;
     }
@@ -134,17 +127,17 @@ export default function ProfesionalesPage() {
 
         <div className="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl text-charcoal leading-[1.1] tracking-tight mb-6">
-            Recibe trabajos cerca de ti.{' '}
-            <span className="text-coral">Gratis para empezar.</span>
+            {t('heroTitle')}{' '}
+            <span className="text-coral">{t('heroHighlight')}</span>
           </h1>
           <p className="text-lg text-muted leading-relaxed mb-8 max-w-xl mx-auto">
-            Únete a los contratistas verificados de Doña Obra y recibe solicitudes de trabajo directamente en tu WhatsApp.
+            {t('heroSubtitle')}
           </p>
           <a
             href="#registro"
             className="inline-flex items-center justify-center bg-coral hover:bg-coral-dark text-white px-8 py-3.5 rounded-full text-base font-semibold transition-all shadow-lg shadow-coral/25 hover:shadow-xl hover:shadow-coral/30 active:scale-[0.98]"
           >
-            Regístrate gratis
+            {t('registerFree')}
           </a>
         </div>
       </section>
@@ -155,23 +148,23 @@ export default function ProfesionalesPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
             <div className="text-center">
               <span className="text-4xl block mb-4">👥</span>
-              <h3 className="font-semibold text-lg text-charcoal mb-2">Más clientes</h3>
+              <h3 className="font-semibold text-lg text-charcoal mb-2">{t('moreClients')}</h3>
               <p className="text-muted text-sm leading-relaxed">
-                Recibe solicitudes de clientes verificados en tu zona.
+                {t('moreClientsDesc')}
               </p>
             </div>
             <div className="text-center">
               <span className="text-4xl block mb-4">💸</span>
-              <h3 className="font-semibold text-lg text-charcoal mb-2">Pagos seguros</h3>
+              <h3 className="font-semibold text-lg text-charcoal mb-2">{t('securePayments')}</h3>
               <p className="text-muted text-sm leading-relaxed">
-                Los clientes conocen el precio desde el inicio. Sin regateo.
+                {t('securePaymentsDesc')}
               </p>
             </div>
             <div className="text-center">
               <span className="text-4xl block mb-4">🗓️</span>
-              <h3 className="font-semibold text-lg text-charcoal mb-2">Tú decides</h3>
+              <h3 className="font-semibold text-lg text-charcoal mb-2">{t('youDecide')}</h3>
               <p className="text-muted text-sm leading-relaxed">
-                Acepta solo los trabajos que quieras, cuando quieras.
+                {t('youDecideDesc')}
               </p>
             </div>
           </div>
@@ -182,17 +175,17 @@ export default function ProfesionalesPage() {
       <section id="registro" className="py-20 bg-cream">
         <div className="max-w-xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="font-display text-3xl text-charcoal text-center mb-10">
-            Únete a Doña Obra
+            {t('joinTitle')}
           </h2>
 
           {submitted ? (
             <div className="bg-jungle/10 border border-jungle/20 rounded-2xl p-8 text-center">
               <span className="text-4xl block mb-4">✅</span>
               <h3 className="font-semibold text-xl text-charcoal mb-2">
-                ¡Registro exitoso!
+                {t('successTitle')}
               </h3>
               <p className="text-muted">
-                Nuestro equipo te contactará por WhatsApp para verificar tu experiencia. ¡Bienvenido a Doña Obra!
+                {t('successMessage')}
               </p>
             </div>
           ) : (
@@ -200,14 +193,14 @@ export default function ProfesionalesPage() {
               {/* Name */}
               <div>
                 <label className="block text-sm font-medium text-charcoal mb-1.5">
-                  Nombre completo *
+                  {t('fullName')}
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full px-4 py-3 bg-white border border-black/10 rounded-xl focus:outline-none focus:border-coral/50 text-charcoal"
-                  placeholder="Tu nombre completo"
+                  placeholder={t('fullNamePlaceholder')}
                   required
                 />
               </div>
@@ -215,7 +208,7 @@ export default function ProfesionalesPage() {
               {/* Specialty */}
               <div>
                 <label className="block text-sm font-medium text-charcoal mb-1.5">
-                  Especialidad *
+                  {t('specialty')}
                 </label>
                 <select
                   value={formData.specialty}
@@ -223,9 +216,9 @@ export default function ProfesionalesPage() {
                   className="w-full px-4 py-3 bg-white border border-black/10 rounded-xl focus:outline-none focus:border-coral/50 text-charcoal"
                   required
                 >
-                  <option value="">Selecciona tu especialidad</option>
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat}>{cat}</option>
+                  <option value="">{t('selectSpecialty')}</option>
+                  {categoryKeys.map((key) => (
+                    <option key={key} value={tc(key)}>{tc(key)}</option>
                   ))}
                 </select>
               </div>
@@ -233,14 +226,14 @@ export default function ProfesionalesPage() {
               {/* WhatsApp */}
               <div>
                 <label className="block text-sm font-medium text-charcoal mb-1.5">
-                  WhatsApp *
+                  {t('whatsapp')}
                 </label>
                 <input
                   type="tel"
                   value={formData.whatsapp}
                   onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
                   className="w-full px-4 py-3 bg-white border border-black/10 rounded-xl focus:outline-none focus:border-coral/50 text-charcoal"
-                  placeholder="+507 6000-0000"
+                  placeholder={t('whatsappPlaceholder')}
                   required
                 />
               </div>
@@ -248,9 +241,9 @@ export default function ProfesionalesPage() {
               {/* Zones */}
               <div>
                 <label className="block text-sm font-medium text-charcoal mb-1.5">
-                  Zonas de trabajo *
+                  {t('workZones')}
                 </label>
-                <p className="text-xs text-muted mb-2">Selecciona todas las zonas donde trabajas</p>
+                <p className="text-xs text-muted mb-2">{t('selectZones')}</p>
                 <div className="flex flex-wrap gap-2">
                   {zones.map((zone) => {
                     const selected = formData.zones.includes(zone);
@@ -275,15 +268,15 @@ export default function ProfesionalesPage() {
               {/* Experience */}
               <div>
                 <label className="block text-sm font-medium text-charcoal mb-1.5">
-                  Años de experiencia
+                  {t('yearsExperience')}
                 </label>
                 <select
                   value={formData.years_experience}
                   onChange={(e) => setFormData({ ...formData, years_experience: e.target.value })}
                   className="w-full px-4 py-3 bg-white border border-black/10 rounded-xl focus:outline-none focus:border-coral/50 text-charcoal"
                 >
-                  {experienceOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  {experienceKeys.map((opt) => (
+                    <option key={opt.value} value={opt.value}>{t(opt.labelKey)}</option>
                   ))}
                 </select>
               </div>
@@ -297,7 +290,7 @@ export default function ProfesionalesPage() {
                 disabled={submitting}
                 className="w-full bg-coral hover:bg-coral-dark text-white py-3.5 rounded-full font-semibold transition-all shadow-lg shadow-coral/25 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {submitting ? 'Enviando...' : 'Registrarme gratis'}
+                {submitting ? tCommon('sendingDots') : tCommon('registerFree')}
               </button>
             </form>
           )}
@@ -308,13 +301,13 @@ export default function ProfesionalesPage() {
       <section className="py-20 bg-white">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="font-display text-3xl text-charcoal text-center mb-10">
-            Preguntas frecuentes
+            {tCommon('faq')}
           </h2>
           <div className="space-y-6">
-            {faqs.map((faq, i) => (
+            {faqKeys.map((faq, i) => (
               <div key={i} className="bg-sand/50 rounded-xl p-6">
-                <h3 className="font-semibold text-charcoal mb-2">{faq.q}</h3>
-                <p className="text-muted text-sm leading-relaxed">{faq.a}</p>
+                <h3 className="font-semibold text-charcoal mb-2">{t(faq.qKey)}</h3>
+                <p className="text-muted text-sm leading-relaxed">{t(faq.aKey)}</p>
               </div>
             ))}
           </div>

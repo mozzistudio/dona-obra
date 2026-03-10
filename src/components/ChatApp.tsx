@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { ConversationMeta } from '@/lib/types';
 import {
   getAllConversations,
@@ -17,6 +18,7 @@ import Chat from './Chat';
 const ACTIVE_CONVERSATION_KEY = 'activeConversationId';
 
 export default function ChatApp() {
+  const t = useTranslations('chat');
   const [conversations, setConversations] = useState<ConversationMeta[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -102,14 +104,14 @@ export default function ChatApp() {
     const meta: ConversationMeta = {
       id,
       type: 'dona_obra',
-      title: 'Nueva consulta',
-      lastMessage: '¡Ey, dimelo! Soy Doña Obra...',
+      title: t('newConversation'),
+      lastMessage: t('newConversationPreview'),
       lastMessageAt: new Date().toISOString(),
     };
 
     setConversationMeta(meta);
     setConversations((prev) => [meta, ...prev]);
-  }, []);
+  }, [t]);
 
   const handleMessageUpdate = useCallback((convId: string, lastMessage: string) => {
     updateConversationMetaLastMessage(convId, lastMessage);

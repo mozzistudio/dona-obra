@@ -1,36 +1,37 @@
 import { MessageCircle, Zap, Star } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 const steps = [
   {
     icon: MessageCircle,
-    title: 'Describe tu problema',
-    description:
-      'Cuéntale a Doña Obra qué necesitas. Texto, fotos, lo que sea.',
+    titleKey: 'step1Title',
+    descriptionKey: 'step1Description',
   },
   {
     icon: Zap,
-    title: 'Recibe tu estimación',
-    description: 'En segundos recibes un rango de precios justo.',
+    titleKey: 'step2Title',
+    descriptionKey: 'step2Description',
   },
   {
     icon: Star,
-    title: 'Elige tu profesional',
-    description: 'Te recomendamos los mejores maestros verificados.',
+    titleKey: 'step3Title',
+    descriptionKey: 'step3Description',
   },
 ];
 
 export default function HowItWorks() {
+  const t = useTranslations('howItWorks');
+
   return (
     <section className="py-20 bg-cream">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section header */}
         <div className="text-center mb-14">
           <h2 className="font-display text-3xl sm:text-4xl text-charcoal mb-4">
-            ¿Cómo funciona?
+            {t('title')}
           </h2>
           <p className="text-muted max-w-lg mx-auto">
-            En tres simples pasos, conectas con el profesional ideal para tu
-            hogar.
+            {t('subtitle')}
           </p>
         </div>
 
@@ -54,10 +55,10 @@ export default function HowItWorks() {
                 </div>
 
                 <h3 className="font-semibold text-lg text-charcoal mb-2">
-                  {step.title}
+                  {t(step.titleKey)}
                 </h3>
                 <p className="text-muted text-sm leading-relaxed">
-                  {step.description}
+                  {t(step.descriptionKey)}
                 </p>
               </div>
             );

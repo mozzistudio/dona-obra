@@ -1,17 +1,27 @@
 import type { Metadata } from 'next';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
-export const metadata: Metadata = {
-  title: 'Politica de Privacidad',
-  description:
-    'Politica de privacidad de Dona Obra. Conoce como recopilamos, usamos y protegemos tu informacion personal.',
-};
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'metadata' });
 
-export default function PrivacidadPage() {
+  return {
+    title: t('privacyTitle'),
+    description: t('privacyDescription'),
+  };
+}
+
+export default async function PrivacidadPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
+  const t = await getTranslations('metadata');
+
   return (
     <div className="bg-cream">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <h1 className="font-display text-4xl sm:text-5xl text-charcoal mb-2">
-          Politica de Privacidad
+          {t('privacyTitle')}
         </h1>
         <p className="text-muted text-sm mb-12">
           Ultima actualizacion: 23 de febrero de 2026

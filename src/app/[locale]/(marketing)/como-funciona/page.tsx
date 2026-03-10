@@ -1,73 +1,63 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { MessageCircle } from 'lucide-react';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
-export const metadata: Metadata = {
-  title: 'Como Funciona',
-  description:
-    'Descubre como Dona Obra te conecta con profesionales verificados en 3 simples pasos. Describe tu problema, recibe una estimacion y elige a tu profesional.',
-  openGraph: {
-    title: 'Como Funciona Dona Obra',
-    description:
-      'En 3 pasos simples, conectamos tu problema del hogar con el profesional ideal en Panama.',
-  },
-};
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'metadata' });
+
+  return {
+    title: t('howItWorksTitle'),
+    description: t('howItWorksDescription'),
+    openGraph: {
+      title: t('howItWorksOgTitle'),
+      description: t('howItWorksOgDescription'),
+    },
+  };
+}
 
 const steps = [
   {
     number: 1,
-    title: 'Describe tu problema',
-    subtitle: 'Cuentale a Dona Obra que necesitas',
-    description:
-      'Abre el chat y describele a Dona Obra lo que esta pasando en tu hogar. Puedes escribir en tus propias palabras, sin necesidad de conocer terminos tecnicos. Si tienes fotos del problema, puedes subirlas para que Dona Obra entienda mejor la situacion.',
-    features: [
-      'Chat en lenguaje natural, como hablar con una vecina',
-      'Sube fotos para mostrar el problema',
-      'Dona Obra te hace preguntas para entender mejor',
-      'Disponible las 24 horas del dia',
-    ],
+    titleKey: 'step1Title' as const,
+    subtitleKey: 'step1Subtitle' as const,
+    descriptionKey: 'step1Description' as const,
+    featureKeys: ['step1Feature1', 'step1Feature2', 'step1Feature3', 'step1Feature4'] as const,
   },
   {
     number: 2,
-    title: 'Recibe tu estimacion',
-    subtitle: 'Precios transparentes al instante',
-    description:
-      'Basandose en tu descripcion, Dona Obra analiza el problema y te da una estimacion del costo con rangos de precios reales del mercado panameno. No hay sorpresas: sabras cuanto esperar antes de contratar a nadie.',
-    features: [
-      'Estimaciones basadas en precios reales de Panama',
-      'Rangos de precios claros y transparentes',
-      'Desglose de lo que incluye el servicio',
-      'Confirmas antes de avanzar al siguiente paso',
-    ],
+    titleKey: 'step2Title' as const,
+    subtitleKey: 'step2Subtitle' as const,
+    descriptionKey: 'step2Description' as const,
+    featureKeys: ['step2Feature1', 'step2Feature2', 'step2Feature3', 'step2Feature4'] as const,
   },
   {
     number: 3,
-    title: 'Elige tu profesional',
-    subtitle: 'Profesionales verificados a tu alcance',
-    description:
-      'Dona Obra te presenta profesionales verificados que pueden resolver tu problema. Cada profesional tiene su perfil con calificaciones, experiencia y precios. Tu eliges al que mejor se adapte a tus necesidades y presupuesto.',
-    features: [
-      'Profesionales verificados y con experiencia',
-      'Perfiles con calificaciones y resenas',
-      'Comparte los detalles del proyecto directamente',
-      'Contacto directo con el profesional elegido',
-    ],
+    titleKey: 'step3Title' as const,
+    subtitleKey: 'step3Subtitle' as const,
+    descriptionKey: 'step3Description' as const,
+    featureKeys: ['step3Feature1', 'step3Feature2', 'step3Feature3', 'step3Feature4'] as const,
   },
 ];
 
-export default function ComoFuncionaPage() {
+export default async function ComoFuncionaPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
+  const t = await getTranslations('howItWorksPage');
+  const tCommon = await getTranslations('common');
+
   return (
     <div className="bg-cream">
       {/* Hero */}
       <section className="pt-16 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="font-display text-4xl sm:text-5xl text-charcoal mb-4">
-            ¿Como funciona Dona Obra?
+            {t('pageTitle')}
           </h1>
           <p className="text-lg text-muted max-w-2xl mx-auto leading-relaxed">
-            En 3 pasos simples, pasas de tener un problema en tu hogar a tener
-            al profesional indicado para resolverlo. Sin complicaciones, sin
-            sorpresas.
+            {t('pageSubtitle')}
           </p>
         </div>
       </section>
@@ -95,15 +85,15 @@ export default function ComoFuncionaPage() {
                     </div>
                     <div>
                       <p className="text-coral text-sm font-semibold uppercase tracking-wider mb-1">
-                        Paso {step.number}
+                        {tCommon('step')} {step.number}
                       </p>
                       <h2 className="font-display text-2xl sm:text-3xl text-charcoal">
-                        {step.title}
+                        {t(step.titleKey)}
                       </h2>
                     </div>
                   </div>
                   <p className="text-muted leading-relaxed pl-0 lg:pl-[5.5rem]">
-                    {step.description}
+                    {t(step.descriptionKey)}
                   </p>
                 </div>
 
@@ -111,10 +101,10 @@ export default function ComoFuncionaPage() {
                 <div className="lg:w-1/2">
                   <div className="bg-white rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.06)] border border-black/[0.04]">
                     <h3 className="text-sm font-semibold text-charcoal uppercase tracking-wider mb-4">
-                      {step.subtitle}
+                      {t(step.subtitleKey)}
                     </h3>
                     <ul className="space-y-3">
-                      {step.features.map((feature, i) => (
+                      {step.featureKeys.map((featureKey, i) => (
                         <li key={i} className="flex items-start gap-3">
                           <span className="flex-shrink-0 w-5 h-5 rounded-full bg-jungle/10 text-jungle flex items-center justify-center mt-0.5">
                             <svg
@@ -132,7 +122,7 @@ export default function ComoFuncionaPage() {
                             </svg>
                           </span>
                           <span className="text-sm text-charcoal/80 leading-relaxed">
-                            {feature}
+                            {t(featureKey)}
                           </span>
                         </li>
                       ))}
@@ -149,11 +139,10 @@ export default function ComoFuncionaPage() {
       <section className="pb-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto bg-gradient-to-br from-coral to-coral-dark rounded-3xl p-8 sm:p-12 text-center">
           <h2 className="font-display text-2xl sm:text-3xl text-white mb-3">
-            ¿Listo para empezar?
+            {t('ctaTitle')}
           </h2>
           <p className="text-white/80 mb-8 max-w-lg mx-auto">
-            Cuentale a Dona Obra tu problema y recibe una estimacion al
-            instante. Es gratis, rapido y sin compromiso.
+            {t('ctaSubtitle')}
           </p>
           <Link
             href="/chat"
@@ -161,7 +150,7 @@ export default function ComoFuncionaPage() {
             className="inline-flex items-center gap-2 bg-white text-coral hover:text-coral-dark px-8 py-3.5 rounded-full font-semibold transition-all shadow-lg hover:shadow-xl active:scale-[0.98]"
           >
             <MessageCircle className="w-5 h-5" />
-            Chatear con Dona Obra
+            {tCommon('chatWithDonaObra')}
           </Link>
         </div>
       </section>

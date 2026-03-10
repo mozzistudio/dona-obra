@@ -1,17 +1,27 @@
 import type { Metadata } from 'next';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
-export const metadata: Metadata = {
-  title: 'Terminos de Servicio',
-  description:
-    'Terminos y condiciones de uso de la plataforma Dona Obra. Conoce tus derechos y responsabilidades al usar nuestros servicios.',
-};
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'metadata' });
 
-export default function TerminosPage() {
+  return {
+    title: t('termsTitle'),
+    description: t('termsDescription'),
+  };
+}
+
+export default async function TerminosPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
+  const t = await getTranslations('metadata');
+
   return (
     <div className="bg-cream">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <h1 className="font-display text-4xl sm:text-5xl text-charcoal mb-2">
-          Terminos de Servicio
+          {t('termsTitle')}
         </h1>
         <p className="text-muted text-sm mb-12">
           Ultima actualizacion: 23 de febrero de 2026
