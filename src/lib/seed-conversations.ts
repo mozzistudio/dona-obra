@@ -2,7 +2,7 @@ import { supabase } from './supabase';
 import { setConversationMeta } from './conversations';
 import { ConversationMeta } from './types';
 
-const SEED_KEY = 'donaObraSeeded_v2';
+const SEED_KEY = 'donaObraSeeded_v4';
 
 const WELCOME_MESSAGE = `¡Ey, dimelo! 👷‍♀️ Soy Doña Obra, tu vecina de confianza pa' todo lo que es reparaciones y servicios del hogar. Yo conozco a todos los buenos maestros de la ciudad 💪
 
@@ -27,13 +27,13 @@ const SAMPLE_CONVERSATIONS: SeedConv[] = [
   {
     meta: {
       type: 'dona_obra',
-      title: 'Ana Martínez',
-      lastMessage: 'Incluye materiales básicos y mano de obra.',
+      title: 'Doña Obra',
+      lastMessage: 'Aquí están los 3 mejores profesionales disponibles en tu zona 👇',
       lastMessageAt: '',
     },
-    user_name: 'Ana Martínez',
-    user_avatar: 'https://ui-avatars.com/api/?name=Ana+Martinez&background=E8614D&color=fff&size=128&bold=true',
-    topic: 'Tubería goteando',
+    user_name: '',
+    user_avatar: '',
+    topic: 'Tubería goteando en el baño',
     messages: [
       {
         role: 'assistant',
@@ -51,19 +51,30 @@ const SAMPLE_CONVERSATIONS: SeedConv[] = [
       {
         role: 'assistant',
         content:
-          '¡Uy mijo! Se ve que está chorreando bastante esa tubería 😬 Pero tranqui, eso se arregla fácil.\n\n¿Es agua fría o caliente la que gotea? ¿Y más o menos desde cuándo está así? 🔧',
+          '¡Uy mijo! Se ve que está chorreando bastante esa tubería 😬 Pero tranqui, eso se arregla.\n\n¿Es una fuga activa ahora mismo o es algo a revisar sin urgencia?',
         delay_minutes: 3,
       },
       {
         role: 'user',
-        content: 'Es agua fría, empezó ayer en la noche',
+        content: 'Es activa ahora, agua fría, sale de las conexiones visibles debajo del lavamanos',
         delay_minutes: 5,
       },
       {
         role: 'assistant',
         content:
-          'Listo mijo, aquí va tu estimación 💪\n\n🔧 Reparación de tubería de agua fría\n💰 $30 — $80\n⭐ Complejidad: Baja\n\nIncluye materiales básicos y mano de obra.',
+          'Perfecto, ya entendí el problema 💪 Para afinar el estimado — ¿en qué barrio o corregimiento está la propiedad, y para cuándo lo necesitas?\n→ Hoy urgente / Esta semana / Sin prisa',
         delay_minutes: 6,
+      },
+      {
+        role: 'user',
+        content: 'Bella Vista, para hoy urgente',
+        delay_minutes: 8,
+      },
+      {
+        role: 'assistant',
+        content:
+          'Listo mijo 💪 Con urgencia en Bella Vista, aquí va tu estimación:\n\n💰 **Estimación para tu proyecto**\n**Mano de obra:** $35 – $80\n**Materiales estimados:** $10 – $30 *(sellos, conectores, cinta teflón)*\n**Total estimado:** $45 – $110\n⚠️ *Esta estimación es orientativa. El precio final lo define el profesional tras evaluar en sitio.*\nLos factores que más pueden afectar el precio: urgencia del día, acceso a las conexiones, estado general de la tubería.\n\nAquí están los 3 mejores profesionales disponibles en tu zona 👇',
+        delay_minutes: 9,
       },
     ],
   },

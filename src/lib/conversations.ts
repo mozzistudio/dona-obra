@@ -155,6 +155,32 @@ export async function getLastMessageForConversations(
   return lastMessages;
 }
 
+export async function getFirstUserMessageForConversations(
+  conversationIds: string[]
+): Promise<Record<string, Message>> {
+  if (conversationIds.length === 0) return {};
+
+  const { data, error } = await supabase
+    .from('messages')
+    .select('*')
+    .in('conversation_id', conversationIds)
+    .eq('role', 'user')
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching first user messages:', error);
+    return {};
+  }
+
+  const firstMessages: Record<string, Message> = {};
+  for (const msg of data || []) {
+    if (!firstMessages[msg.conversation_id]) {
+      firstMessages[msg.conversation_id] = msg;
+    }
+  }
+  return firstMessages;
+}
+
 export async function getConversationIdsWithUserMessages(): Promise<Set<string>> {
   const { data, error } = await supabase
     .from('messages')
@@ -202,6 +228,53 @@ export async function deleteEmptyConversations(): Promise<number> {
   return emptyIds.length;
 }
 
+export async function mergeDuplicateDonaObraConversations(): Promise<void> {
+  // Find all Doña Obra conversations (no user_name = bot conversation)
+  const { data: donaObraConvs, error } = await supabase
+    .from('conversations')
+    .select('*')
+    .is('user_name', null)
+    .order('last_message_at', { ascending: false });
+
+  if (error || !donaObraConvs || donaObraConvs.length <= 1) return;
+
+  // Keep the most recent one, move messages from others into it
+  const keepId = donaObraConvs[0].id;
+  const duplicateIds = donaObraConvs.slice(1).map((c) => c.id);
+
+  // Move all messages from duplicates to the kept conversation
+  await supabase
+    .from('messages')
+    .update({ conversation_id: keepId })
+    .in('conversation_id', duplicateIds);
+
+  // Delete the duplicate conversations
+  await supabase.from('conversations').delete().in('id', duplicateIds);
+
+  // Clean localStorage
+  if (typeof window !== 'undefined') {
+    const meta = getConversationsMeta();
+    for (const id of duplicateIds) {
+      delete meta[id];
+    }
+    localStorage.setItem(CONVERSATIONS_META_KEY, JSON.stringify(meta));
+  }
+}
+
+export async function updateConversationTopic(
+  id: string,
+  topic: string
+): Promise<void> {
+  const { error } = await supabase
+    .from('conversations')
+    .update({ topic })
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error updating conversation topic:', error);
+  }
+}
+
 // localStorage helpers for conversation metadata
 const CONVERSATIONS_META_KEY = 'conversationsMeta';
 
@@ -220,6 +293,28 @@ export function setConversationMeta(meta: ConversationMeta): void {
   const all = getConversationsMeta();
   all[meta.id] = meta;
   localStorage.setItem(CONVERSATIONS_META_KEY, JSON.stringify(all));
+}
+
+export async function createProviderConversation(
+  providerName: string,
+  providerAvatar: string | null
+): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('conversations')
+    .insert({
+      status: 'active',
+      user_name: providerName,
+      user_avatar: providerAvatar,
+    })
+    .select('id')
+    .single();
+
+  if (error) {
+    console.error('Error creating provider conversation:', error);
+    return null;
+  }
+
+  return data?.id || null;
 }
 
 export function updateConversationMetaLastMessage(
