@@ -306,7 +306,7 @@
     "faqA4": "Después de registrarte, nuestro equipo te contacta para verificar tu experiencia."
   },
   "chat": {
-    "welcomeMessage": "¡Ey, dimelo! 👷‍♀️ Soy Doña Obra, tu vecina de confianza pa' todo lo que es reparaciones y servicios del hogar. Yo conozco a todos los buenos maestros de la ciudad 💪\n\nCuéntame qué necesitas — mándame texto, fotos, lo que sea — y yo te digo cuánto te va a salir y quién te lo puede resolver. ¡Vamos al grano! 🔧",
+    "welcomeMessage": "¡Hola! Soy Doña Obra 👷‍♀️ Cuéntame, ¿qué servicio necesitas para tu hogar hoy?",
     "relanceMessage": "¿Sigues ahí? Cuéntame más para poder ayudarte mejor 😊",
     "welcomeTitle": "¡Hola! Soy Doña Obra 👷‍♀️",
     "welcomeSubtitle": "Tu vecina de confianza para servicios del hogar en Panamá",
@@ -331,13 +331,10 @@
     "noConversations": "No hay conversaciones"
   },
   "progress": {
-    "problem": "Problema",
-    "location": "Ubicación",
-    "property": "Propiedad",
-    "urgency": "Urgencia",
-    "schedule": "Horario",
-    "budget": "Presupuesto",
-    "contact": "Contacto"
+    "analysis": "Análisis",
+    "diagnostic": "Diagnóstico",
+    "summary": "Resumen",
+    "providers": "Prestatarios"
   },
   "provider": {
     "topPick": "⭐ Top Pick de Doña Obra",

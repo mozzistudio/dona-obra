@@ -8,10 +8,10 @@ interface ProviderCarouselProps {
   topPickId?: string;
   brief?: Brief;
   estimation?: Estimation;
-  onWhatsAppSent?: (providerName: string) => void;
+  onContactProvider?: (provider: Provider, message: string) => void;
 }
 
-export default function ProviderCarousel({ providers, topPickId, brief, estimation, onWhatsAppSent }: ProviderCarouselProps) {
+export default function ProviderCarousel({ providers, topPickId, brief, estimation, onContactProvider }: ProviderCarouselProps) {
   return (
     <>
       <div className="flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide">
@@ -22,7 +22,7 @@ export default function ProviderCarousel({ providers, topPickId, brief, estimati
               isTopPick={provider.id === topPickId}
               brief={brief}
               estimation={estimation}
-              onWhatsAppSent={onWhatsAppSent}
+              onContactProvider={onContactProvider}
             />
           </div>
         ))}

@@ -1,15 +1,16 @@
-import { ChatMessage } from '@/lib/types';
+import ReactMarkdown from 'react-markdown';
+import { ChatMessage, Provider } from '@/lib/types';
 import ImagePreview from './ImagePreview';
 import ProviderCarousel from './ProviderCarousel';
 import { CheckCheck } from 'lucide-react';
 
 interface MessageBubbleProps {
   message: ChatMessage;
-  onWhatsAppSent?: (providerName: string) => void;
+  onContactProvider?: (provider: Provider, message: string) => void;
   showTail?: boolean;
 }
 
-export default function MessageBubble({ message, onWhatsAppSent, showTail = true }: MessageBubbleProps) {
+export default function MessageBubble({ message, onContactProvider, showTail = true }: MessageBubbleProps) {
   const isUser = message.role === 'user';
 
   const time = message.timestamp.toLocaleTimeString('es-PA', {
@@ -34,9 +35,17 @@ export default function MessageBubble({ message, onWhatsAppSent, showTail = true
           )}
 
           {message.content && (
-            <p className="whitespace-pre-wrap text-[14.2px] leading-[19px] text-[#111B21] pb-3">
-              {message.content}
-            </p>
+            <div className="whitespace-pre-wrap text-[14.2px] leading-[19px] text-[#111B21] pb-3 markdown-content">
+              <ReactMarkdown
+                components={{
+                  p: ({ children }) => <p className="mb-1 last:mb-0">{children}</p>,
+                  strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                  em: ({ children }) => <em className="italic">{children}</em>,
+                }}
+              >
+                {message.content}
+              </ReactMarkdown>
+            </div>
           )}
 
           {/* Timestamp + read receipt pinned bottom-right */}
@@ -55,7 +64,7 @@ export default function MessageBubble({ message, onWhatsAppSent, showTail = true
               topPickId={message.topPickId}
               brief={message.brief}
               estimation={message.estimation}
-              onWhatsAppSent={onWhatsAppSent}
+              onContactProvider={onContactProvider}
             />
           </div>
         )}

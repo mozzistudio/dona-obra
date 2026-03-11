@@ -331,13 +331,10 @@
     "noConversations": "Keine Gespräche vorhanden"
   },
   "progress": {
-    "problem": "Problem",
-    "location": "Standort",
-    "property": "Objekt",
-    "urgency": "Dringlichkeit",
-    "schedule": "Zeitplan",
-    "budget": "Budget",
-    "contact": "Kontakt"
+    "analysis": "Analyse",
+    "diagnostic": "Diagnose",
+    "summary": "Zusammenfassung",
+    "providers": "Fachkräfte"
   },
   "provider": {
     "topPick": "⭐ Top-Empfehlung von Doña Obra",

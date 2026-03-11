@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, ChangeEvent } from 'react';
+import { useState, useEffect, useRef, ChangeEvent } from 'react';
 import { useTranslations } from 'next-intl';
 import { Send, Paperclip, Smile, Mic } from 'lucide-react';
 import ImagePreview from './ImagePreview';
@@ -16,6 +16,11 @@ export default function ChatInput({ onSend, disabled, initialMessage }: ChatInpu
   const [message, setMessage] = useState(initialMessage || '');
   const [images, setImages] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Update message when initialMessage changes dynamically (e.g. provider chat prefill)
+  useEffect(() => {
+    if (initialMessage) setMessage(initialMessage);
+  }, [initialMessage]);
 
   const compressImage = async (file: File, maxWidth = 1024, quality = 0.7): Promise<string> => {
     return new Promise((resolve) => {

@@ -7,46 +7,37 @@ interface ProviderCardProps {
   isTopPick?: boolean;
   brief?: Brief;
   estimation?: Estimation;
-  onWhatsAppSent?: (providerName: string) => void;
+  onContactProvider?: (provider: Provider, message: string) => void;
 }
 
-function buildWhatsAppMessage(brief: Brief, estimation: Estimation): string {
-  return `🏠 *NUEVA SOLICITUD - Doña Obra*
+export function buildContactMessage(providerName: string, brief: Brief, estimation: Estimation): string {
+  return `Hola ${providerName}, te contacto a través de Doña Obra 👷‍♀️
 
-👤 *Cliente:* ${brief.contact.name}
-📱 *WhatsApp:* ${brief.contact.whatsapp}
-
-🔧 *Servicio:* ${brief.category}
+📋 *Servicio:* ${brief.category}
+📝 *Detalles:* ${brief.problem_summary}
 📍 *Ubicación:* ${brief.location}
-⏰ *Urgencia:* ${brief.urgency}
-🕐 *Disponibilidad:* ${brief.availability}
-💰 *Presupuesto del cliente:* ${brief.budget}
+📅 *Disponibilidad:* ${brief.availability}
+💰 *Estimación recibida:* $${estimation.range_low} – $${estimation.range_high}
 
-📝 *Descripción:*
-${brief.problem_summary}
-
-📸 *Fotos:* ${brief.photos_count} imagen(es) enviada(s) por el cliente
-
-💡 *Estimación Doña Obra:* B/. ${estimation.range_low}–${estimation.range_high}
-⏱️ *Duración estimada:* ${estimation.duration_estimate}
-
----
-Responde para confirmar tu disponibilidad.
-_Enviado por Doña Obra 🏡_`;
+¿Puedes confirmar disponibilidad y enviarme tu cotización?`;
 }
 
-export default function ProviderCard({ provider, isTopPick, brief, estimation, onWhatsAppSent }: ProviderCardProps) {
+export default function ProviderCard({ provider, isTopPick, brief, estimation, onContactProvider }: ProviderCardProps) {
   const t = useTranslations('provider');
 
   const handleSolicitar = () => {
     if (!brief || !estimation) return;
 
-    const message = buildWhatsAppMessage(brief, estimation);
-    const phone = (provider.whatsapp || provider.phone || '').replace(/[^0-9+]/g, '');
-    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-    window.open(url, '_blank');
+    const message = buildContactMessage(provider.name, brief, estimation);
 
-    onWhatsAppSent?.(provider.name);
+    if (provider.whatsapp) {
+      // Open WhatsApp directly with pre-filled project details
+      const phoneNumber = provider.whatsapp.replace(/[^0-9]/g, '');
+      window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`, '_blank');
+    } else {
+      // Fallback: pass to parent (sidebar conversation)
+      onContactProvider?.(provider, message);
+    }
   };
 
   const primaryCategory = provider.categories[0] || '';

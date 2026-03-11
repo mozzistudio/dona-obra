@@ -35,8 +35,12 @@ interface ChatProps {
   conversationId: string | null;
   onConversationCreated?: (id: string) => void;
   onMessageUpdate?: (conversationId: string, lastMessage: string) => void;
+  onTitleUpdate?: (conversationId: string, title: string) => void;
   onToggleSidebar?: () => void;
+  onContactProvider?: (provider: Provider, message: string) => void;
   initialCategory?: string | null;
+  prefillMessage?: string | null;
+  isProviderChat?: boolean;
   userName?: string;
   userAvatar?: string;
 }
@@ -45,8 +49,12 @@ export default function Chat({
   conversationId: externalConversationId,
   onConversationCreated,
   onMessageUpdate,
+  onTitleUpdate,
   onToggleSidebar,
+  onContactProvider,
   initialCategory,
+  prefillMessage,
+  isProviderChat,
   userName,
   userAvatar,
 }: ChatProps) {
@@ -91,11 +99,16 @@ export default function Chat({
     }, 120000);
   }, [cancelInactivityTimer, briefReceived, t]);
 
-  const { append, isLoading } = useChat({
+  // Frozen at the moment a message is sent — never changes mid-stream due to re-renders
+  const pendingConvIdRef = useRef<string | null>(conversationId);
+
+  const { append, isLoading, setMessages } = useChat({
     api: '/api/chat',
-    body: { conversationId },
     onFinish: async (message) => {
       startInactivityTimer();
+
+      // Use the conversation ID frozen at send time, not the current render value
+      const currentConvId = pendingConvIdRef.current;
 
       const result = parseBrief(message.content);
 
@@ -111,12 +124,11 @@ export default function Chat({
           chatBrief.brief.category
         );
 
-        const intro = textPart || chatBrief.brief.problem_summary;
-        const estimationText = `${intro}\n\n🔧 ${chatBrief.brief.problem_summary}\n📍 ${chatBrief.brief.location}\n💰 B/. ${chatBrief.estimation.range_low} — ${chatBrief.estimation.range_high}\n⏱️ ${chatBrief.estimation.duration_estimate}\n📊 Confianza: ${chatBrief.estimation.confidence}`;
+        // Use the bot's formatted Phase 4 text directly — no JSON reconstruction
         const summaryMessage: ChatMessage = {
           id: Date.now().toString(),
           role: 'assistant',
-          content: estimationText,
+          content: textPart || chatBrief.brief.problem_summary,
           brief: chatBrief.brief,
           estimation: chatBrief.estimation,
           timestamp: new Date(),
@@ -134,12 +146,22 @@ export default function Chat({
             timestamp: new Date(),
           };
           setChatMessages((prev) => [...prev, providerMessage]);
-          onMessageUpdate?.(conversationId!, t('foundProviders', { count: providers.length }));
+          if (currentConvId) onMessageUpdate?.(currentConvId, t('foundProviders', { count: providers.length }));
         }
       } else {
         addAssistantMessage(message.content);
-        onMessageUpdate?.(conversationId!, message.content);
+        if (currentConvId) onMessageUpdate?.(currentConvId, message.content);
       }
+    },
+    onError: (error) => {
+      console.error('Chat error:', error);
+      const errorMsg: ChatMessage = {
+        id: `error-${Date.now()}`,
+        role: 'assistant',
+        content: 'Lo siento, hubo un error. Por favor intenta de nuevo. 😔',
+        timestamp: new Date(),
+      };
+      setChatMessages((prev) => [...prev, errorMsg]);
     },
   });
 
@@ -166,10 +188,24 @@ export default function Chat({
         if (dbMessages.length > 0) {
           const chatMsgs: ChatMessage[] = [];
 
+          // Inject DB messages into useChat's internal state for context
+          const useChatMessages = dbMessages.map((m) => ({
+            id: m.id,
+            role: m.role as 'user' | 'assistant',
+            content: m.content,
+          }));
+          setMessages(useChatMessages);
+
           for (const m of dbMessages) {
+            // Check content first (legacy: full %%%BRIEF%%% in content)
+            // Then fall back to metadata (new: textPart in content, ChatBrief in metadata)
             const briefResult = parseBrief(m.content);
-            if (briefResult && m.role === 'assistant') {
-              const { textPart, chatBrief } = briefResult;
+            const metadataBrief = !briefResult && m.role === 'assistant' && m.metadata &&
+              (m.metadata as unknown as ChatBrief).brief && (m.metadata as unknown as ChatBrief).estimation
+              ? { textPart: m.content, chatBrief: m.metadata as unknown as ChatBrief }
+              : null;
+            if ((briefResult || metadataBrief) && m.role === 'assistant') {
+              const { textPart, chatBrief } = (briefResult || metadataBrief)!;
               setLastBrief(chatBrief.brief);
               setLastEstimation(chatBrief.estimation);
               setBriefReceived(true);
@@ -179,12 +215,11 @@ export default function Chat({
                 chatBrief.brief.category
               );
 
-              const intro = textPart || chatBrief.brief.problem_summary;
-              const estimationText = `${intro}\n\n🔧 ${chatBrief.brief.problem_summary}\n📍 ${chatBrief.brief.location}\n💰 B/. ${chatBrief.estimation.range_low} — ${chatBrief.estimation.range_high}\n⏱️ ${chatBrief.estimation.duration_estimate}\n📊 Confianza: ${chatBrief.estimation.confidence}`;
+              // Use the bot's formatted Phase 4 text directly — no JSON reconstruction
               chatMsgs.push({
                 id: m.id,
                 role: 'assistant',
-                content: estimationText,
+                content: textPart || chatBrief.brief.problem_summary,
                 brief: chatBrief.brief,
                 estimation: chatBrief.estimation,
                 timestamp: new Date(m.created_at),
@@ -229,15 +264,12 @@ export default function Chat({
 
           setChatMessages(chatMsgs);
           setShowWelcomeScreen(false);
+          isFirstMessageRef.current = false;
           return;
         }
       }
 
-      const newId = await createConversation();
-      if (newId) {
-        setConversationId(newId);
-        onConversationCreated?.(newId);
-      }
+      // Don't create conversation eagerly — wait for first user message
       setShowWelcomeScreen(true);
     }
 
@@ -254,6 +286,8 @@ export default function Chat({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages, isLoading]);
 
+  const isFirstMessageRef = useRef(true);
+
   const handleStartChat = useCallback(() => {
     setShowWelcomeScreen(false);
     const welcomeMsg: ChatMessage = {
@@ -263,19 +297,31 @@ export default function Chat({
       timestamp: new Date(),
     };
     setChatMessages([welcomeMsg]);
-    if (conversationId) {
-      saveMessage(conversationId, 'assistant', welcomeMessage);
-    }
-  }, [conversationId, welcomeMessage]);
+    // Don't save welcome message to DB yet — conversation may not exist
+  }, [welcomeMessage]);
 
   const handleSendMessage = async (text: string, images: string[]) => {
-    if (!conversationId) return;
-
     if (showWelcomeScreen) {
       handleStartChat();
     }
 
     cancelInactivityTimer();
+
+    // Lazy conversation creation: create on first message if needed
+    let currentConvId = conversationId;
+    if (!currentConvId) {
+      currentConvId = await createConversation();
+      if (!currentConvId) return;
+      setConversationId(currentConvId);
+      onConversationCreated?.(currentConvId);
+      // Save the welcome message now that we have a conversation
+      if (!isProviderChat) {
+        await saveMessage(currentConvId, 'assistant', welcomeMessage);
+      }
+    }
+
+    // Freeze the conversation ID for this request — prevents onFinish from using a stale ref
+    pendingConvIdRef.current = currentConvId;
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
@@ -286,9 +332,19 @@ export default function Chat({
     };
 
     setChatMessages((prev) => [...prev, userMessage]);
-    onMessageUpdate?.(conversationId, text);
+    onMessageUpdate?.(currentConvId, text);
 
-    await saveMessage(conversationId, 'user', text, images.length > 0 ? images : undefined);
+    // Update title from first user message
+    if (isFirstMessageRef.current) {
+      isFirstMessageRef.current = false;
+      const title = text.length > 40 ? text.slice(0, 40) + '...' : text;
+      onTitleUpdate?.(currentConvId, title);
+    }
+
+    await saveMessage(currentConvId, 'user', text, images.length > 0 ? images : undefined);
+
+    // Provider chat: just save message, no AI call
+    if (isProviderChat) return;
 
     let messageContent: any;
     if (images.length > 0) {
@@ -304,18 +360,12 @@ export default function Chat({
       messageContent = text;
     }
 
-    await append({ role: 'user', content: messageContent });
+    await append({ role: 'user', content: messageContent }, { body: { conversationId: currentConvId } });
   };
 
-  const handleWhatsAppSent = useCallback((providerName: string) => {
-    const confirmMsg: ChatMessage = {
-      id: `wa-confirm-${Date.now()}`,
-      role: 'assistant',
-      content: t('requestSent', { name: providerName }),
-      timestamp: new Date(),
-    };
-    setChatMessages((prev) => [...prev, confirmMsg]);
-  }, [t]);
+  const handleContactProvider = useCallback((provider: Provider, message: string) => {
+    onContactProvider?.(provider, message);
+  }, [onContactProvider]);
 
   return (
     <div className="flex flex-col flex-1 h-full min-w-0">
@@ -367,14 +417,14 @@ export default function Chat({
         </div>
       </div>
 
-      {/* Collection Progress Indicator */}
-      {!briefReceived && chatMessages.length > 1 && (
-        <CollectionProgress messages={chatMessages} />
+      {/* Phase Progress Indicator — hidden in provider chats */}
+      {!isProviderChat && !briefReceived && chatMessages.length > 1 && (
+        <CollectionProgress messages={chatMessages} briefReceived={briefReceived} />
       )}
 
       {/* Messages area with WhatsApp wallpaper */}
       <div className="flex-1 overflow-y-auto wa-chat-bg px-3 sm:px-16 py-4">
-        {showWelcomeScreen && chatMessages.length === 0 ? (
+        {!isProviderChat && showWelcomeScreen && chatMessages.length === 0 ? (
           <WelcomeScreen onStart={handleStartChat} />
         ) : (
           <>
@@ -382,7 +432,7 @@ export default function Chat({
               <MessageBubble
                 key={message.id}
                 message={message}
-                onWhatsAppSent={handleWhatsAppSent}
+                onContactProvider={handleContactProvider}
                 showTail={
                   index === 0 ||
                   chatMessages[index - 1]?.role !== message.role
@@ -405,7 +455,7 @@ export default function Chat({
       <ChatInput
         onSend={handleSendMessage}
         disabled={isLoading}
-        initialMessage={initialCategory ? t('needHelpWith', { category: initialCategory }) : undefined}
+        initialMessage={prefillMessage || (initialCategory ? t('needHelpWith', { category: initialCategory }) : undefined)}
       />
     </div>
   );
@@ -453,26 +503,20 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
   );
 }
 
-// Collection Progress Indicator Component
-interface CollectedFields {
-  problem_description: boolean;
-  location: boolean;
-  property_type: boolean;
-  urgency: boolean;
-  availability: boolean;
-  budget_range: boolean;
-  contact_info: boolean;
+// Phase Progress Indicator Component
+interface PhaseProgress {
+  analysis: boolean;
+  diagnostic: boolean;
+  summary: boolean;
+  providers: boolean;
 }
 
-function detectCollectedFields(messages: ChatMessage[]): CollectedFields {
-  const fields: CollectedFields = {
-    problem_description: false,
-    location: false,
-    property_type: false,
-    urgency: false,
-    availability: false,
-    budget_range: false,
-    contact_info: false,
+function detectPhaseProgress(messages: ChatMessage[], briefReceived: boolean): PhaseProgress {
+  const phases: PhaseProgress = {
+    analysis: false,
+    diagnostic: false,
+    summary: false,
+    providers: false,
   };
 
   const allText = messages
@@ -480,79 +524,72 @@ function detectCollectedFields(messages: ChatMessage[]): CollectedFields {
     .map(m => m.content.toLowerCase())
     .join(' ');
 
-  const allAssistantText = messages
-    .filter(m => m.role === 'assistant')
-    .map(m => m.content.toLowerCase())
-    .join(' ');
-
-  if (messages.some(m => m.role === 'user' && m.content.length > 5)) {
-    fields.problem_description = true;
+  // Phase 1: Analysis — user described a problem and bot responded
+  const hasUserMessage = messages.some(m => m.role === 'user' && m.content.length > 5);
+  const hasAssistantResponse = messages.filter(m => m.role === 'assistant').length >= 2;
+  if (hasUserMessage && hasAssistantResponse) {
+    phases.analysis = true;
   }
+
+  // Phase 2: Diagnostic — at least 2 of {location, property, urgency, availability} detected
+  let diagnosticCount = 0;
 
   const locationPatterns = /bella vista|san francisco|el cangrejo|paitilla|obarrio|marbella|costa del este|casco viejo|condado del rey|el dorado|pueblo nuevo|juan díaz|parque lefevre|betania|río abajo|calidonia|ancón|santa ana|chorrillo|pedregal|tocumen|las cumbres|villa lucre|arraiján|la chorrera|barrio|corregimiento|sector|zona/i;
-  if (locationPatterns.test(allText) || /¿?en qué (barrio|zona|sector|área)/i.test(allAssistantText)) {
-    if (locationPatterns.test(allText)) fields.location = true;
-  }
+  if (locationPatterns.test(allText)) diagnosticCount++;
 
   const propertyPatterns = /\b(casa|apartamento|apto|piso \d|edificio|townhouse|ph|penthouse|local|oficina)\b/i;
-  if (propertyPatterns.test(allText)) {
-    fields.property_type = true;
-  }
+  if (propertyPatterns.test(allText)) diagnosticCount++;
 
   const urgencyPatterns = /\b(urgente|hoy|mañana|esta semana|sin prisa|cuando pueda|lo antes posible|cuanto antes|ya|ahorita|pronto)\b/i;
-  if (urgencyPatterns.test(allText)) {
-    fields.urgency = true;
-  }
+  if (urgencyPatterns.test(allText)) diagnosticCount++;
 
   const availabilityPatterns = /\b(mañana|tarde|noche|después de las|antes de las|entre|lunes|martes|miércoles|jueves|viernes|sábado|domingo|am|pm|hora|disponible|libre|cualquier hora|todo el día)\b/i;
-  if (availabilityPatterns.test(allText)) {
-    fields.availability = true;
+  if (availabilityPatterns.test(allText)) diagnosticCount++;
+
+  if (diagnosticCount >= 2) {
+    phases.diagnostic = true;
   }
 
-  const budgetPatterns = /\b(presupuesto|budget|\$|b\/\.|balboas?|dólares?|no sé|no se|lo que cueste|barato|caro|económico|\d{2,})\b/i;
-  if (budgetPatterns.test(allText) && messages.filter(m => m.role === 'user').length >= 4) {
-    fields.budget_range = true;
-  }
-
+  // Phase 3: Summary — contact info detected (name + phone)
   const contactPatterns = /(\+?507|\+?1)?\s?\d{4}[-\s]?\d{4}|whatsapp|mi (nombre|número|cel|teléfono)|me llamo/i;
   if (contactPatterns.test(allText)) {
-    fields.contact_info = true;
+    phases.summary = true;
   }
 
-  return fields;
+  // Phase 4: Providers — brief received
+  phases.providers = briefReceived;
+
+  return phases;
 }
 
-function CollectionProgress({ messages }: { messages: ChatMessage[] }) {
+function CollectionProgress({ messages, briefReceived }: { messages: ChatMessage[]; briefReceived: boolean }) {
   const t = useTranslations('progress');
-  const fields = detectCollectedFields(messages);
+  const phases = detectPhaseProgress(messages, briefReceived);
 
-  const fieldConfig = [
-    { key: 'problem_description' as const, icon: '🔧', label: t('problem') },
-    { key: 'location' as const, icon: '📍', label: t('location') },
-    { key: 'property_type' as const, icon: '🏠', label: t('property') },
-    { key: 'urgency' as const, icon: '⏰', label: t('urgency') },
-    { key: 'availability' as const, icon: '🕐', label: t('schedule') },
-    { key: 'budget_range' as const, icon: '💰', label: t('budget') },
-    { key: 'contact_info' as const, icon: '📞', label: t('contact') },
+  const phaseConfig = [
+    { key: 'analysis' as const, icon: '🔍', label: t('analysis') },
+    { key: 'diagnostic' as const, icon: '🔧', label: t('diagnostic') },
+    { key: 'summary' as const, icon: '📋', label: t('summary') },
+    { key: 'providers' as const, icon: '👷', label: t('providers') },
   ];
 
   return (
     <div className="bg-wa-panel-header border-b border-wa-border px-3 py-2 shrink-0 overflow-x-auto">
       <div className="flex items-center gap-1.5 min-w-max">
-        {fieldConfig.map(({ key, icon, label }) => {
-          const collected = fields[key];
+        {phaseConfig.map(({ key, icon, label }) => {
+          const completed = phases[key];
           return (
             <div
               key={key}
               className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium transition-all duration-500 ${
-                collected
+                completed
                   ? 'bg-wa-green/10 text-wa-green-dark'
                   : 'bg-gray-100 text-gray-400 animate-pulse'
               }`}
             >
               <span>{icon}</span>
               <span className="hidden sm:inline">{label}</span>
-              {collected && <span>✅</span>}
+              {completed && <span>✅</span>}
             </div>
           );
         })}

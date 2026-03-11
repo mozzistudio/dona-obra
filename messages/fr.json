@@ -331,13 +331,10 @@
     "noConversations": "Aucune conversation"
   },
   "progress": {
-    "problem": "Problème",
-    "location": "Emplacement",
-    "property": "Propriété",
-    "urgency": "Urgence",
-    "schedule": "Horaire",
-    "budget": "Budget",
-    "contact": "Contact"
+    "analysis": "Analyse",
+    "diagnostic": "Diagnostic",
+    "summary": "Récapitulatif",
+    "providers": "Prestataires"
   },
   "provider": {
     "topPick": "⭐ Choix préféré de Doña Obra",

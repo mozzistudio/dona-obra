@@ -331,13 +331,10 @@
     "noConversations": "No conversations"
   },
   "progress": {
-    "problem": "Problem",
-    "location": "Location",
-    "property": "Property",
-    "urgency": "Urgency",
-    "schedule": "Schedule",
-    "budget": "Budget",
-    "contact": "Contact"
+    "analysis": "Analysis",
+    "diagnostic": "Diagnostic",
+    "summary": "Summary",
+    "providers": "Providers"
   },
   "provider": {
     "topPick": "⭐ Doña Obra's Top Pick",
